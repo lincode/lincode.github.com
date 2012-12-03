@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>{{ site.title }}|{{ site.description }}</title>
+  {% include header.html %}
+</head>
+<body>
+{% include banner.html %}
+<div class="cast">{{ page.description }}...</div>
+<div class="main">
+<div class="title"><a href="{{ page.url }}">{{ page.title }}</a></div>
+<div class="content">
+	{{ content }}
+</div>
+</div>
+
+{% include footer.html %}
+</body>
+</html>
+

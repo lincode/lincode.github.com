@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>GuoJing's Blog</title>
+		<description>述而不作</description>
+		<link>http://lincode.github.com</link>
+		<atom:link href="http://lincode.github.com/feed.xml" rel="self" type="application/rss+xml" />
+		
+			<item>
+				<title>Thanks for using.</title>
+				<description>&lt;p&gt;Thanks for using the simple theme of jekyll in github.&lt;/p&gt;
+
+&lt;p&gt;This is a demo post, and you can remove it.&lt;/p&gt;
+
+&lt;p&gt;Any problem please contact me &lt;a href='mailto:soundbbg@gmail.com'&gt;&amp;#115;&amp;#111;&amp;#117;&amp;#110;&amp;#100;&amp;#098;&amp;#098;&amp;#103;&amp;#064;&amp;#103;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#046;&amp;#099;&amp;#111;&amp;#109;&lt;/a&gt; or visit &lt;a href='http://guojing.ne'&gt;GuoJing&lt;/a&gt;&lt;/p&gt;</description>
+				<pubDate>Sun, 02 Dec 2012 00:00:00 +0800</pubDate>
+				<link>http://lincode.github.com/blog/2012/12/02/thanks-for-using/</link>
+				<guid isPermaLink="true">http://lincode.github.com/blog/2012/12/02/thanks-for-using/</guid>
+			</item>
+		
+	</channel>
+</rss>
