@@ -2,20 +2,445 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
 		<title>GuoJing's Blog</title>
-		<description>述而不作</description>
+		<description>BeiYuu\'s Blog</description>
 		<link>http://lincode.github.com</link>
 		<atom:link href="http://lincode.github.com/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
-				<title>Thanks for using.</title>
-				<description>&lt;p&gt;Thanks for using the simple theme of jekyll in github.&lt;/p&gt;
+				<title>述而不作</title>
+				<description>&lt;p&gt;“述而不作”，语出《论语·述而》:“述而不作；信而好古；窃比我于老彭。”&lt;/p&gt;
 
-&lt;p&gt;This is a demo post, and you can remove it.&lt;/p&gt;
+&lt;p&gt;孔子以此表达了他对于经典的谦虚态度。&lt;/p&gt;
 
-&lt;p&gt;Any problem please contact me &lt;a href='mailto:soundbbg@gmail.com'&gt;&amp;#115;&amp;#111;&amp;#117;&amp;#110;&amp;#100;&amp;#098;&amp;#098;&amp;#103;&amp;#064;&amp;#103;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#046;&amp;#099;&amp;#111;&amp;#109;&lt;/a&gt; or visit &lt;a href='http://guojing.ne'&gt;GuoJing&lt;/a&gt;&lt;/p&gt;</description>
-				<pubDate>Sun, 02 Dec 2012 00:00:00 +0800</pubDate>
-				<link>http://lincode.github.com/blog/2012/12/02/thanks-for-using/</link>
-				<guid isPermaLink="true">http://lincode.github.com/blog/2012/12/02/thanks-for-using/</guid>
+&lt;p&gt;用这句话作为博客标题，意思是这里确实也没有个人独创，更多是翻译别人的文章。&lt;/p&gt;
+
+&lt;p&gt;我认为在知识爆炸的现代社会，准确地转述好的知识来源，比“创造”一些可能是谬误的独特理解反而更有意义。&lt;/p&gt;</description>
+				<pubDate>Thu, 24 Dec 2020 00:00:00 +0800</pubDate>
+				<link>http://lincode.github.com/why-write-this-blog</link>
+				<guid isPermaLink="true">http://lincode.github.com/why-write-this-blog</guid>
+			</item>
+		
+			<item>
+				<title>Objective-C 中使用属性 (Properties)</title>
+				<description>&lt;p&gt;在 iPhone 中如何使用 Objective-C 与内存打交道这个主题由一个包含三部分的系列文章组成，本篇是其中的第三篇。&lt;/p&gt;
+
+&lt;p&gt;在系列文章的&lt;a href=''&gt;第一篇&lt;/a&gt;中，我们覆盖了 Objective-C 中如何使用实例变量和引用计数管理内存。&lt;/p&gt;
+
+&lt;p&gt;在系列文章的&lt;a href=''&gt;第二篇&lt;/a&gt;中，我们覆盖了如何使用 Instruments 和其他辅助工具检查自己的应用的内存泄漏和内存相关错误。&lt;/p&gt;
+
+&lt;p&gt;在系列文章的第三篇也是最后一篇中，我们将讨论一下属性(Properties)和 Objective-C。 我们将讨论属性是什么，他们如何工作，和一些可以用于避免内存相关问题的简单规则。&lt;/p&gt;
+
+&lt;p&gt;如果你还没有下载［示例项目]()，请下载它。此示例项目是我们在本系列文章中逐步建立起来的，现在我们用它作为本篇的一个起点。&lt;/p&gt;
+
+&lt;h2 id='retain_your_memory'&gt;Retain Your Memory&lt;/h2&gt;
+
+&lt;p&gt;让我们花一点时间回顾一下我们目前在内存管理方面的项目。在 RootViewController 中有两个实例变量: &lt;em&gt;sushiTypes， 和&lt;/em&gt;lastSushiSelected 。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;@interface RootViewController : UITableViewController {
+	NSArray * _sushiTypes;
+	NSString * _lastSushiSelected;
+}
+@end&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对于 &lt;em&gt;sushiTypes, 数组在 viewDidLoad 中通过 alloc/init 创建，在 viewDidUnload 和 dealloc 中被释放：&lt;/em&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;//In viewDidLoad.  Afterwards, retain count is 1.
+_sushiTypes = [[NSArray alloc] initWithObjects:@&amp;quot;California Roll&amp;quot;,
+				@&amp;quot;Tuna Roll&amp;quot;, @&amp;quot;Salmon Roll&amp;quot;, @&amp;quot;Unagi Roll&amp;quot;, 
+				@&amp;quot;Philadelphia Roll&amp;quot;, @&amp;quot;Rainbow Roll&amp;quot;,
+				@&amp;quot;Vegetable Roll&amp;quot;, @&amp;quot;Spider Roll&amp;quot;,
+				@&amp;quot;Shrimp Tempura Roll&amp;quot;, @&amp;quot;Cucumber Roll&amp;quot;,
+				@&amp;quot;Yellowtail Roll&amp;quot;, @&amp;quot;Spicy Tuna Roll&amp;quot;,
+				@&amp;quot;Avocado Roll&amp;quot;, @&amp;quot;Scallop Roll&amp;quot;, nil];
+
+// In viewDidUnload and dealloc.  Afterwards, retain count is 0.
+[_sushiTypes release];
+_sushiTypes = nil; &lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对于 &lt;em&gt;lastSushiSelected，当用户在列表中选择一行时它被赋值，它要么在被赋值之前被释放，要么在 dealloc 中释放。&lt;/em&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;//In tableView:didSelectRowAtIndexPath.  
+//Releases any existing object first and then retains the new object.
+[_lastSushiSelected release];
+_lastSushiSelected = [sushiString retain];
+
+//In dealloc
+[_sushiTypes release];
+_sushiTypes = nil;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个方式肯定是有效的，但是他要求你每次给变量赋值时都细致考虑内存问题。那么，让我们看看是否有简单点的方法！&lt;/p&gt;
+
+&lt;h2 id='get_set_'&gt;Get 很简单，Set 要写点代码&lt;/h2&gt;
+
+&lt;p&gt;如果你对其他语言如 Java 或者 C# 很熟悉，你可能也很熟悉取值器(getters)和赋值器(setters)的概念。&lt;/p&gt;
+
+&lt;p&gt;当你有了一个实例变量如 &lt;em&gt;sushiTypes，你通常也希望别的类可以访问到它。但是允许别的类直接访问实例变量一般说来都是不好的做法，因为它破坏了代码的封闭性。&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;所以作为代替，你可以生成一个叫 “getSushiType” 的方法(或可能仅仅叫 “SushiTypes” 易节省三个字符) 和一个叫 “setShushiTypes” 的方法。这样更好一些因为之后你可以改变实例变量的名字而不破坏其他类，或者在方法中添加额外的功能(如可以记录下任何时候任何人试图获取这个变量的行为)。&lt;/p&gt;
+
+&lt;p&gt;如此加入取值器和赋值器不仅仅有利于那些试图使用这些变量的外部类，它也是把内存管理代码统一起来的便捷方法。让我们看看如何为这两个变量添加取值器和赋值器。&lt;/p&gt;
+
+&lt;p&gt;首先在 RootViewController.h 的底部加入取值器和赋值器的函数签名：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;- (NSArray *)sushiTypes;
+- (void)setSushiTypes:(NSArray *)sushiTypes;
+- (NSString *)lastSushiSelected;
+- (void)setLastSushiSelected:(NSString *)lastSushiSelected;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后在 RootViewController.h 的底部加入函数实现：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;- (NSArray *)sushiTypes {
+	return _sushiTypes;
+}
+
+- (void)setSushiTypes:(NSArray *)sushiTypes {
+	[sushiTypes retain];
+	[_sushiTypes release];
+	_sushiTypes = sushiTypes;
+}
+
+- (NSString *)lastSushiSelected {
+	return _lastSushiSelected;
+}
+
+- (void)setLastSushiSelected:(NSString *)lastSushiSelected {
+	[lastSushiSelected retain];
+	[_lastSushiSelected release];
+	_lastSushiSelected = lastSushiSelected;
+}&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;取值器不言自明 - 他们仅仅返回实例变量。&lt;/p&gt;
+
+&lt;p&gt;赋值器增加了传入参数的引用计数，减少了旧实例变量的引用计数，并且将实例变量设置为传入参数。通过这种方法，在实例变量复制时对象正确地拥有存于实例变量中对象的引用计数。&lt;/p&gt;
+
+&lt;p&gt;你可能想知道为什么赋值器依照顺序先调用 retain/release 然后再给实例变量赋值。依照这个顺序是为了避免在传入参数和实例变量是同一个值时可能产生的错误。如果不确定为什么，可以脑袋里过一下这个过程，想一想将发生什么。&lt;/p&gt;
+
+&lt;p&gt;注意命名实例变量以下划线开始(而不是什么也没有)使得写这类方法方便很多。如果你已经命名了一个实例变量为“sushiTypes”，我们无法将 setSushiTypes 的参数命名为 “sushiTypes” 因为名字将会又冲突。这也是一个很好的简单的方法告知别人，你什么时候是在使用一个实例变量，什么时候不是。&lt;/p&gt;
+
+&lt;p&gt;最终，注意这些取值器和赋值器不是线程安全的。但是这对这个应用而言并不是问题，取值器/赋值器将只被主线程访问。&lt;/p&gt;
+
+&lt;h2 id='_getset_'&gt;现在可以 Get/Set 了&lt;/h2&gt;
+
+&lt;p&gt;现在你有了新的取值器和赋值器了，修改类的余下代码使用它们。让我们从 sushiTypes：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;// In viewDidLoad
+self.sushiTypes = [[[NSArray alloc] initWithObjects:@&amp;quot;California Roll&amp;quot;, 
+	           @&amp;quot;Tuna Roll&amp;quot;, @&amp;quot;Salmon Roll&amp;quot;, @&amp;quot;Unagi Roll&amp;quot;,
+	           @&amp;quot;Philadelphia Roll&amp;quot;, @&amp;quot;Rainbow Roll&amp;quot;,
+        	   @&amp;quot;Vegetable Roll&amp;quot;, @&amp;quot;Spider Roll&amp;quot;, 
+        	   @&amp;quot;Shrimp Tempura Roll&amp;quot;, @&amp;quot;Cucumber Roll&amp;quot;,
+        	   @&amp;quot;Yellowtail Roll&amp;quot;, @&amp;quot;Spicy Tuna Roll&amp;quot;,
+        	   @&amp;quot;Avocado Roll&amp;quot;, @&amp;quot;Scallop Roll&amp;quot;, nil] autorelease];
+
+// In viewDidUnload and dealloc
+self.sushiTypes = nil;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;调用 “self.sushiTypes = xxx” 和调用 “&lt;span&gt;self setSushiTypes:xxx&lt;/span&gt;” - 点号对于我而言更好看一些。&lt;/p&gt;
+
+&lt;p&gt;所以基本上，我们现在用赋值器替代直接给 &lt;em&gt;sushiTypes 这个实例变量直接赋值。调用赋值器将为你所传的对象的引用计数加1。所以，我们不能仅传 alloc/init 的结果(因为，这样引用计数将为2，这是不正确的)－我们在结尾调用 autorelease。&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;在 viewDidUnload 和 dealloc 中，不用先调用 release 然后手动置值为 nil，我们可以直接调用赋值器。如果，你将 nil 带入 setSushiTypes，你将看当为何可以如此做：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[nil retain];  // Does nothing
+[_sushiTypes release];
+_sushiTypes = nil;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;顺带说一句，因为可能你已察觉到－一些人说，“不要在 dealloc 或者 init 中使用取值器和赋值器”。他们这么说是因为取值器和赋值器是随意的函数，它们可能有副作用并破坏一些东西。但是恕我直言－如果你编写了它们并且知道他们没有问题－那么在可以简化代码的情况下就使用他们。&lt;/p&gt;
+
+&lt;p&gt;现在更改代码使用 lastSushiSelected 的赋值器：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;// In tableView:didSelectRowAtIndexPath,
+// delete the two lines about 	_lastSushiSelected and replace with:
+self.lastSushiSelected = sushiString;
+
+// In dealloc
+self.lastSushiSelected = nil;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Wow - 对于内存的担心少了很多，不是吗？赋值器包含了所有要认真处理内存管理事务的代码。&lt;/p&gt;
+
+&lt;h2 id='id1160'&gt;一个简单的提议&lt;/h2&gt;
+
+&lt;p&gt;所以写取值器和赋值器对于别的类访问你的实例变量是很有用的，并且有时也使内存管理更为简单。&lt;/p&gt;
+
+&lt;p&gt;但是一遍一遍编写这些方法实在是件很蛋痛的事情！没有人希望一遍一遍做相同的事情，所以 Objective-C 有一个很有用的功能来帮助我们解脱：属性(properties)。&lt;/p&gt;
+
+&lt;p&gt;你可以用很少几行代替所有取值器/赋值器代码！自己试一下。在 RootViewController.h，去除取值器和赋值器的原型用以下代码代替：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;@property (nonatomic, retain) NSArray * sushiTypes;
+@property (nonatomic, retain) NSString * lastSushiSelected;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这是使用属性的第一步：创建属性声明。&lt;/p&gt;
+
+&lt;p&gt;属性声明以关键字 @property 开始。然后在括号里你可以放属性的描述(将在后面讨论)。最后，你给出类型和属性的名字。&lt;/p&gt;
+
+&lt;p&gt;属性的描述是几个特殊的关键字，用以告诉编译器如何生成取值器和赋值器。这里，你指明了两个描述：nonatomic，它告诉编译器不要担心多线程，retain，它告诉编译器在给实例变量赋值之前先在 传入值上调用 retian。&lt;/p&gt;
+
+&lt;p&gt;在其他情况下，你可能需要使用 “assign” 这个属性描述替代 retain，它告诉编译器不要在传入值上调用 retain。或者也许是 “copy” 这个描述，它告诉编译器在赋值之前制作传入值的一个拷贝。&lt;/p&gt;
+
+&lt;p&gt;好了！为了结束关于属性的使用这一部分，转到 RootViewController.m，删去你之前写的取值器和赋值器，添加如下代码在文件顶部：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;@synthesize sushiTypes = _sushiTypes;
+@synthesize lastSushiSelected = _lastSushiSelected;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这两行指示编译器基于你在头文件中加的属性定义自动生成取值器和赋值器代码。你以关键字 @synthesize 开始，然后给出属性名，然后(如果有不同的名字)告诉它需关联哪个实例变量。&lt;/p&gt;
+
+&lt;p&gt;这就完了！编译运行代码，它应该运行如初。但是如果你比较现在的代码和开始的代码，我想你会同意现在的代码更易懂一些，可以避免更多的错误。&lt;/p&gt;
+
+&lt;p&gt;你已学会了属性，和他们如何工作。&lt;/p&gt;
+
+&lt;h2 id='id1161'&gt;综合的策略&lt;/h2&gt;
+
+&lt;p&gt;我想用一些我有时会在 Objective－C 中用到的简化内存管理的策略来总结一下这篇文章。&lt;/p&gt;
+
+&lt;p&gt;如果你遵守这些规则，大部分时候，你都可以远离内存相关的麻烦。当然，盲目遵循这些规则并不能替代理解其中的原理，但是它可以使事情变得简单并帮助你避免错误，特别当你还是初学者的时候。&lt;/p&gt;
+
+&lt;p&gt;我将先列出这些规则，然后逐条讨论。 &lt;ol&gt;
+&lt;li&gt;总是为实例变量生成属性。&lt;/li&gt;
+&lt;li&gt;如果使类，标记为 retain。如果不是，标记为 assign。&lt;/li&gt;
+&lt;li&gt;无论何时创建一个变量，都使用 alloc/init/autorelease 语式。&lt;/li&gt;
+&lt;li&gt;无路何时给一个变量赋值，总是使用 “self.xxx = yyy” (换句话说，使用属性)。&lt;/li&gt;
+&lt;li&gt;对于你的每一个实例变量，在 dealloc 中调用 &quot;self.xxx = nil&quot;。如果它是 outlet 或者是你在 viewDidLoad 创建的东西，在 viewDidUnLoad 中调用 &quot;self.xxx = ni&quot;。&lt;/li&gt;
+&lt;/ol&gt; 好，现在进入讨论！&lt;/p&gt;
+
+&lt;p&gt;对于规则1：为每个实例变量都生成属性，你可以让编译器为你写内存管理代码。缺陷是不能保持私有数据的封装，一不小心就导致更多相互关联的代码。&lt;/p&gt;
+
+&lt;p&gt;对于规则2：无论何时赋值，都向变量发送 retain 消息。这样，你可以确保你任何时候都可以访问你的实例变量。&lt;/p&gt;
+
+&lt;p&gt;对于规则3：当你创建变量时，使用 alloc/init/autorelease 语式 (就像你之前在创建 NSArray 类型的 sushiTypes 时看到的那样)。这种方法，内存将在晚些时候自动释放。如果你要长期保持变量，你应该将它赋给一个属性，将它放入数组，或者增加它的引用计数。&lt;/p&gt;
+
+&lt;p&gt;对于规则4：无论何时赋值都使用 self.xxx 语法(即使用属性)。这样，你将通过属性确保释放了旧的变量并保留了新变量。注意某些程序对于在构造器和析构器(即 dealloc)中使用取值器和赋值器，表示担忧，但是我认为这并不是什么值得担忧的事情如果你写了并理解那些代码。&lt;/p&gt;
+
+&lt;p&gt;过对于规则5：调用“self.xxx = nil” 将调用你的属性代码，并为引用计数减一。不要忘记在 viewDidUnload 中做同样的事情！&lt;/p&gt;
+
+&lt;h2 id='_cocos2d_'&gt;关于 Cocos2D 的简化的策略&lt;/h2&gt;
+
+&lt;p&gt;这个 blog 中有很多狂热的 Cocos2D 粉丝，所以我为你们这些人加了特别的一节。&lt;/p&gt;
+
+&lt;p&gt;上面的那些策略对于 Cocos2D 而言通常是矫枉过正，因为大多数时候你的实例变量仅仅是一些你要在你的当前层使用的对象的引用。只要这些对象当前在层上，Cocos2D 就会保留他们。&lt;/p&gt;
+
+&lt;p&gt;所以为了避免生产不必要的属性，这里有我如何使用 Cocos2D:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;完全不要使用属性。&lt;/li&gt;
+&lt;li&gt;将你创建的对象直接赋给实例变量。&lt;/li&gt;
+&lt;li&gt;因为他们将成为当前层的子对象，只要他们上了当前层，Cocos2D 就将增加他们的引用计数。&lt;/li&gt;
+&lt;li&gt;在你从层中去除对象时，将当前对象置为 nil。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;我仅是个人认为这样的开发方式更为简单快速。&lt;/p&gt;
+
+&lt;p&gt;注意如果你的对象当前不在层上，这些策略将不适用－你需要适用其他的策略。&lt;/p&gt;
+
+&lt;h2 id='id1162'&gt;接下来去哪儿？&lt;/h2&gt;
+
+&lt;p&gt;这儿是上面的文章中使用到的&lt;a href='http://'&gt;实例项目&lt;/a&gt;，已经改用了属性。&lt;/p&gt;
+
+&lt;p&gt;如果你有任何关于属性和内存管理的问题，欢迎在后面的论坛留言！同时欢迎分享如果你有任何其他内存管理的策略，技巧，或者对其他开发者有用的建议。&lt;/p&gt;
+
+&lt;p&gt;关于内存管理的系列文章，希望它对拨开 Objective-C 的内存管理的神秘面纱有帮助。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;strong&gt;原文连接&lt;/strong&gt;：&lt;a href='http://www.raywenderlich.com/2712/using-properties-in-objective-c-tutorial'&gt;http://www.raywenderlich.com/2712/using-properties-in-objective-c-tutorial&lt;/a&gt;&lt;/p&gt;</description>
+				<pubDate>Thu, 06 Dec 2012 00:00:00 +0800</pubDate>
+				<link>http://lincode.github.com/properties-in-objc</link>
+				<guid isPermaLink="true">http://lincode.github.com/properties-in-objc</guid>
+			</item>
+		
+			<item>
+				<title>谈谈刚需和360影视</title>
+				<description>&lt;h1 id='360'&gt;&lt;a title='谈谈刚需和360影视' href='/needs-video'&gt;谈谈刚需和360影视&lt;/a&gt;&lt;/h1&gt;
+
+&lt;p&gt;2012-11-22 By &lt;a href='http://www.guo-lin.com/'&gt;lincode&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id='id1152'&gt;很久以前&lt;/h2&gt;
+
+&lt;p&gt;很欠的说，一年半之前，我非常想做影视导航站，构思也近完整。当时试用了几个同类站，基本上能确定，这些产品经理不追美剧。&lt;a href='http://v.360.cn'&gt;360影视&lt;/a&gt;在2011年4月下旬发布，跟我的想法同期，不过我发现他却是几个月之后了。&lt;/p&gt;
+
+&lt;h2 id='id1153'&gt;需求很简单&lt;/h2&gt;
+
+&lt;p&gt;对于追剧集的来说，需求其实很简单：&lt;/p&gt;
+
+&lt;p&gt;- 找到需要的剧集 - 在线看地址或下载链接（在线最好） - 记住我看到哪了 - 更新及时&lt;/p&gt;
+
+&lt;p&gt;这样简单的需求，那么多站做的我连吐槽的兴趣都没有。好吧，360影视满足了上面的需求，所以我用他，又因为我用，所以才吐槽：&lt;/p&gt;
+
+&lt;h2 id='360'&gt;吐槽360影视&lt;/h2&gt;
+
+&lt;h3 id='id1154'&gt;一个剧集&lt;/h3&gt;
+
+&lt;p&gt;各站对一个剧集有多季的处理，除了豆瓣电影可以方便完整的链接到其他季，其他各站几乎都独立了每一季，这是糟糕的体验，人为增大** “找到需要的剧集” &lt;strong&gt;的难度。看下图： &lt;img src='/images/360video/sp-search.jpg' alt='ssh key success' /&gt; 我是不会明白这样做的好处，得到的只是难受、难受。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id='new'&gt;new标识&lt;/h3&gt;
+
+&lt;p&gt;new标识绝对是互联网上最被滥用的图标之一。有些地方用的真让人莫名的恼火： &lt;img src='/images/360video/baidu-new.jpg' alt='ssh key success' /&gt; 这是百度首页网址导航的new标识，难以理解，猜测他根据我的浏览记录来决定是否显示new，但是Big Bang我看过了却还显示，所以这个逻辑行不通，只好猜测他是根据绝对时间的new程度来显示，这就无法满足** “记住我看到哪了” &lt;strong&gt;需求，如果我有很久一段时间没看，提示失去了参考意义，而且点一下链接，new就会消失，我只能呵呵了。完全不可用。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src='/images/360video/2b-sohu.jpg' alt='ssh key success' /&gt; 再看搜狐视频的new标识，3、4集都标上了new，你却根本不管我到底看了没，看过3了，3上面的new还在，也是混乱了正常秩序，没有安全感，不靠谱。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src='/images/360video/2b-360.jpg' alt='ssh key success' /&gt; 360影视的这个new的定义也很奇怪，我看过了new还在，过了两个星期了new也还在，我只能推断他的逻辑就是，最新的一集就是需要标new的那一集，真把用户当白痴了，不过他稍好一点的是，这个毫无意义的标识不会捣乱。&lt;/p&gt;
+
+&lt;p&gt;那到底怎样做才好呢，既然每个剧集里面会标明看过与否，那么在我正在追的美剧的集合页，明确的告诉我，我赶上最新一集某剧还差多少就好了啊。 &lt;img src='/images/360video/new-out.jpg' alt='ssh key success' /&gt; 看到这，也就能体会独立每一季出来有多恶心了。&lt;/p&gt;
+
+&lt;h3 id='id1155'&gt;注册用户&lt;/h3&gt;
+
+&lt;p&gt;我明白，像这样一个刚需产品，又通过360浏览器导航过来的，大多都是低端用户，首页做成那个样子无可厚非，可是当我顶着极大的不情愿注册了用户之后，能不能稍微体谅下注册用户的心呢？&lt;/p&gt;
+
+&lt;p&gt;我猜想根据产品的设计，用户注册就是为了标记自己想看的剧集，方便更快更准的追剧，可是每次打开还是那个国产垃圾横行的首页，你让小清新们怎么看的上呢？&lt;/p&gt;
+
+&lt;p&gt;好啦，我就忍一下，多点一下“我的影视”吧： &lt;img src='/images/360video/360-home.jpg' alt='ssh key success' /&gt;&lt;/p&gt;
+
+&lt;p&gt;发现问题没，把我主动标记了的影视放在下面，要把那些自作聪明的推荐作品放在上面，并且一个都没有推荐，这不是耍流氓的干活还是什么滴干活？&lt;/p&gt;
+
+&lt;p&gt;再综合上面new标识最后一条，基本上，网站的使用效率被这些恶心的细节全面拉低，需要很多无谓的操作，才能到达我的真正目的。&lt;/p&gt;
+
+&lt;h3 id='id1156'&gt;安全感&lt;/h3&gt;
+
+&lt;p&gt;我最近比较喜欢用安全感这个概念，大意就是我在乎的事情你都能很好的解决，并不需要我过多的操心。 &lt;img src='/images/360video/homeland.jpg' alt='ssh key success' /&gt; 看过与否倒是一目了然，可当我只是看了几眼，并不想接着看下去，或者手贱点了后面的某一集，我就得人肉去记住，我没看过第一集，只是手贱点了一下，下次想看的时候得从第一集看，一定要记得，一定。&lt;/p&gt;
+
+&lt;p&gt;呵呵，那我还要你记干嘛呢？&lt;/p&gt;
+
+&lt;h2 id='id1157'&gt;顺道吐槽社交&lt;/h2&gt;
+
+&lt;p&gt;看到这个需求人很多，在移动端尤甚。有个叫“段落”的电视导航应用，主要功能是电视节目早知道，现在电视节目有精彩到需要看着预告时间等的程度吗？我表示怀疑。不过“段落”主打的是社交，可以跟同时看“非诚勿扰”的观众交流哦~&lt;/p&gt;
+
+&lt;p&gt;我只想说，&lt;strong&gt;社你妈X交&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id='id1158'&gt;真有那么困难吗&lt;/h2&gt;
+
+&lt;p&gt;是的，这个命题很难以理解，来看看百度视频的例子，美剧在百度的搜索量肯定不小： &lt;img src='/images/360video/baidu-search.jpg' alt='ssh key success' /&gt; 继续吐槽那个无法理解的new标识，总体看起来不错哦，提供了好几个视频服务商，点开过的链接，自然的变不同颜色，看起来很自然，但是满足 &lt;strong&gt;“记住我看到哪儿”&lt;/strong&gt; 的需求还是不可靠，就没有安全感。&lt;/p&gt;
+
+&lt;p&gt;再看看假如我要追一个剧集，那么在百度视频里面该怎么做呢？ &lt;img src='/images/360video/baidu-video.jpg' alt='ssh key success' /&gt; 点了，好久，终于发现了这个藏起来的“订阅”按钮，订阅，订阅，呵呵，订阅！&lt;/p&gt;
+
+&lt;p&gt;在回到百度视频的首页，我是无法找到我刚才的“订阅”操作，对首页有任何影响，参考上面的“注册用户”一节，百度首页上也没什么特别的变化，所以，至此，我不知道这个订阅按钮到底有什么作用。&lt;/p&gt;
+
+&lt;p&gt;百度视频首页，在众多傻逼一样的new标识之下，我还是被吸引到了一个叫“我的随心看”的频道，以为可以快速打开我订阅的剧集，原来是“豆瓣猜”啊，混乱至极。&lt;/p&gt;
+
+&lt;h2 id='id1159'&gt;结语&lt;/h2&gt;
+
+&lt;p&gt;本来想心平气和的吐槽下，毕竟360影视做的正常的地方还是有的，可是说着说着还是不免激动了，哎。&lt;/p&gt;</description>
+				<pubDate>Thu, 22 Nov 2012 00:00:00 +0800</pubDate>
+				<link>http://lincode.github.com/needs-video</link>
+				<guid isPermaLink="true">http://lincode.github.com/needs-video</guid>
+			</item>
+		
+			<item>
+				<title>Notty Notes</title>
+				<description>&lt;h1 id='notty_notes'&gt;&lt;a title='Notty Notes' href='/notty-notes'&gt;Notty Notes&lt;/a&gt;&lt;/h1&gt;
+
+&lt;p&gt;2012-10-17 By &lt;a href='http://www.guo-lin.com/'&gt;lincode&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a title='Notty Notes' href='https://chrome.google.com/webstore/detail/notty-notes/ggbmjahbkbhakkfgjiggdclpmmpmhajn?hl=zh-CN'&gt;Notty Notes&lt;/a&gt;是为我自己写的便签插件，满足基本需求，并且看起来比较舒适，这是我的目标。可以在Chrome Store中下载安装，感谢&lt;a href='http://www.douban.com/people/JGuo/'&gt;靖哥哥&lt;/a&gt;帮我做宣传图：&lt;/p&gt;
+&lt;a title='Notty Notes' target='_blank' href='https://chrome.google.com/webstore/detail/notty-notes/ggbmjahbkbhakkfgjiggdclpmmpmhajn?hl=zh-CN'&gt;&lt;img src='/images/backbonechrome/notes-logo.jpg' alt='Notty Notes' /&gt;&lt;/a&gt;
+&lt;p&gt;主要有如下几个优势：&lt;/p&gt;
+&lt;ul&gt;
+	&lt;li&gt;简单、美观&lt;/li&gt;
+	&lt;li&gt;离线使用&lt;/li&gt;
+	&lt;li&gt;自动保存&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在背景上双击，就会添加新的便签，点击便签的标题部分可以单独配置背景主题、字号大小等。可以加锁，可以收起。&lt;/p&gt;
+
+&lt;p&gt;现在还没有做同步功能，仍在考虑之中，这个插件的完成，花了不少功夫，细节方面我认为想到做到很多，可以自行体会，如果有不满意的地方，欢迎吐槽。 截图看看：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src='/images/backbonechrome/notes-draft.jpg' alt='Notes Draft' /&gt;&lt;/p&gt;
+
+&lt;p&gt;日子穿行而过，带来很多，也逝去很多，不管你愿不愿意接受，就这么自然的发生了。&lt;/p&gt;
+
+&lt;p&gt;追求的太多，必定是折磨，只是，不一定所有人都知道，折磨越久，快乐才更高。&lt;/p&gt;
+
+&lt;p&gt;怎样写这个插件，可以看我的教程：&lt;a title='Backbone.js的使用及Chrome插件开发' href='http://beiyuu.com/backbone-js-chrome-extension/'&gt;Backbone.js的使用及Chrome插件开发&lt;/a&gt;。&lt;/p&gt;</description>
+				<pubDate>Wed, 17 Oct 2012 00:00:00 +0800</pubDate>
+				<link>http://lincode.github.com/notty-notes</link>
+				<guid isPermaLink="true">http://lincode.github.com/notty-notes</guid>
+			</item>
+		
+			<item>
+				<title>OverAPI</title>
+				<description>&lt;h1 id='overapi'&gt;&lt;a title='OverAPI' href='/overapi-cheatsheet'&gt;OverAPI&lt;/a&gt;&lt;/h1&gt;
+
+&lt;p&gt;2012-09-22 By &lt;a href='http://www.guo-lin.com/'&gt;lincode&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a title='OverAPI - Collecting all the cheat sheets' href='http://overapi.com'&gt;OverAPI&lt;/a&gt;是一个从我自己的需求出发，搭建起来的项目。项目结构很简单，将常用语言的API很扁平的展现出来，方便翻阅和查找。&lt;/p&gt;
+
+&lt;p&gt;Chrome插件下载：&lt;a title='All Cheat Sheets' href='https://chrome.google.com/webstore/detail/oedodeocfdeegliepeeoieemhdgoijod?hl=zh-CN'&gt;All Cheat Sheets&lt;/a&gt;&lt;/p&gt;
+&lt;a title='OverAPI - Collecting all the cheat sheets' target='_blank' href='http://overapi.com'&gt;&lt;img src='/images/overapi/overapi.jpg' alt='OverAPI' /&gt;&lt;/a&gt;
+&lt;p&gt;生活在继续，遇到的人和事越来越繁杂，于是，满目的秋意、愉悦的欢叫，都像微风一样，带来的是美妙的简单。&lt;/p&gt;
+
+&lt;p&gt;我们总想拥有一切，可一切到底有多少，就像诺兰的处女作&lt;a title='Following' href='http://movie.douban.com/subject/1397546/'&gt;Following&lt;/a&gt;中表现的一样，一些物品只有在失去时才知道他存在过。&lt;/p&gt;
+
+&lt;p&gt;人生有目标才能前进，无论这个目标能否实现，OverAPI的目标是拥有一切，如果你有兴趣一起实现，可以联系我。&lt;/p&gt;
+
+&lt;p&gt;现在已经有：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href='http://overapi.com/python/'&gt;Python Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/jquery/'&gt;jQuery Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/nodejs/'&gt;NodeJS Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/php/'&gt;PHP Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/ruby/'&gt;Ruby Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/javascript/'&gt;Javascript Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/actionscript/'&gt;ActionScript Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/css/'&gt;CSS Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/git/'&gt;Git Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/svn/'&gt;SVN Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/mysql/'&gt;MySQL Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/regex/'&gt;Regex Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/linux/'&gt;Linux Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/html/'&gt;HTML Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/html-dom/'&gt;HTML-DOM Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href='http://overapi.com/mod_rewrite/'&gt;mod_rewrite Cheat Sheet&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+				<pubDate>Sat, 22 Sep 2012 00:00:00 +0800</pubDate>
+				<link>http://lincode.github.com/overapi-cheatsheet</link>
+				<guid isPermaLink="true">http://lincode.github.com/overapi-cheatsheet</guid>
+			</item>
+		
+			<item>
+				<title>听雨</title>
+				<description>&lt;h1 id='id1151'&gt;&lt;a title='听雨' href='/raining-in-chrome'&gt;听雨&lt;/a&gt;&lt;/h1&gt;
+
+&lt;p&gt;2012-04-18 By &lt;a href='http://www.guo-lin.com/'&gt;lincode&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;之前直接下载.crx文件的童鞋，现在可以把原来的卸载，直接在Chrome Web Store中下载了，地址：&lt;a href='https://chrome.google.com/webstore/detail/fkakmejoechmicbecchienoapbakancc'&gt;It&amp;#8217;s Raining&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;来京快两年了，撑伞的次数屈指可数，有时候也会在心里暗暗后怕，是帝都的蓝天硬生生战胜了抑郁。&lt;/p&gt;
+
+&lt;p&gt;京城令人发指的秋天，蓝的清透，顶着这样的天，要是心底再泛起所谓的忧郁，自己都会鄙视自己。时常也会怀念连绵的阴雨，天色阴暗、空气清新、雨声滴答，单纯而静谧，就算假装想想心事也很有情调。&lt;/p&gt;
+
+&lt;p&gt;不得不说，有时候只是听着雨声，也能换个心情，也能专注起来。&lt;/p&gt;
+
+&lt;p&gt;近来对Chrome插件有点兴趣，又看到&lt;a title='Rainy Mood' href='http://www.rainymood.com'&gt;RainyMood&lt;/a&gt;，就试试写一个这样调整气氛心情的插件。Chrome的插件开发体验很棒，待整理下再发博客。另外感谢&lt;a href='http://www.softicons.com/free-icons/web-icons/vector-stylish-weather-icons-by-bartosz-kaszubowski/cloud-dark-rain-icon'&gt;softicons&lt;/a&gt;提供漂亮的图标。&lt;/p&gt;
+
+&lt;p&gt;&lt;a title='黑镜' href='http://movie.douban.com/subject/7054120/'&gt;Black Mirror&lt;/a&gt;最近很火，豆瓣评分也非常高。我看完的时候，心中的赞叹感让我觉得应该写篇影评骂一骂，影评还没写，却发现我经常会想起里面的情景，所以我不得不低头承认，他确实拍的有那么一点深刻了。&lt;/p&gt;
+
+&lt;p&gt;美剧有时候看起来很右派，要完美，即使不完美，那一定得是感动。英剧显然就是2B青年的套路。现实有多2B，他就有多现实。把Black Mirror的每一集总结一下就是：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;1、我就是单纯要搞你，你看着办吧。&lt;/li&gt;
+
+&lt;li&gt;2、这就是未来。&lt;/li&gt;
+
+&lt;li&gt;3、科技让欺骗无处遁形，很好。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;未来是现世一步步发展过去的。记得之前有一个问题：如果用电流刺激你的大脑，让你得到与真实环境刺激一样的神经感受，那么这到底算什么呢。我相信，总有一天技术会达到，但是现在离那也不遥远，互联网就在做这样的事情，我的这个小插件也是做同样的事情，你说这是杯具呢还是悲剧呢？&lt;/p&gt;
+
+&lt;p&gt;想体验，就点&lt;a href='https://chrome.google.com/webstore/detail/fkakmejoechmicbecchienoapbakancc'&gt;这里&lt;/a&gt;下载吧，只支持&lt;a href='https://www.google.com/chrome'&gt;Chrome&lt;/a&gt;浏览器哦！&lt;/p&gt;
+
+&lt;p&gt;&lt;img src='/images/rainingchrome/rain.jpg' alt='Raining' /&gt;&lt;/p&gt;</description>
+				<pubDate>Wed, 18 Apr 2012 00:00:00 +0800</pubDate>
+				<link>http://lincode.github.com/raining-in-chrome</link>
+				<guid isPermaLink="true">http://lincode.github.com/raining-in-chrome</guid>
 			</item>
 		
 	</channel>

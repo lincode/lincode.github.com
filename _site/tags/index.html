@@ -1,41 +1,40 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
 <head>
-  <title>lincde's Blog|述而不作</title>
-  <meta charset="utf-8" />
-<link rel="stylesheet" href="/css/style.css" type="text/css">
-<link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/feed.xml">
-<link rel="icon" href="/images/icons/avatar.png">
-<script type="text/javascript" src="/js/jquery-1.7.1.min.js"></script>
+    <!--
+    * Author:         BeiYuu
+    -->
+    <meta charset="utf-8" />
+    <title>Tags | 述而不作</title>
+    <meta name="generator" content="Jekyll" />
+    <meta name="author" content="lincode" />
+    <meta name="description" content="BeiYuu\'s Blog" />
+    <link rel="stylesheet" href="/css/default.css" type="text/css" />
+    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <script type="text/javascript" src="/js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript">
+        var BYB = {};
+    </script>
 </head>
 <body>
-<div class="banner">
-  <ul>
-    <li><a href="/">Home</a></li>
-    <li><a href="/archive/">Archive</a></li>
-    <li><a href="/categories/">Categories</a></li>
-    <li><a href="/tags/">Tags</a></li>
-    <li><a href="/feed.xml">Feed</a></li>
-  </ul>
-</div>
-
-<script>
-$(document).ready(function(){
-	$('a').hover(
-		function(){
-			$(this).animate({opacity: 0.3}, 400)
-		}, 
-		function(){
-			$(this).animate({opacity: 1}, 400)
-		});
-})
-</script>
-
-<div class="cast">Tags...</div>
-<div class="main">
-<div class="title"><a href="/tags/index.html">Tags</a></div>
-<div class="content">
-	<p>这里也许有：</p>
+    <div id="head">
+    <div id="header">
+	    <div class='logo left'>
+		<a href="/" title="Home">lincode</a>
+	    </div>
+        <div class="nav right">
+            <a href="/" title="Transmitting">博客</a>
+            <!--<a href="/project" title="Projects Ongoing">项目</a>-->
+            <!--<a href="/opinion" title="My Opinion" >生活</a>-->
+            <!--<a href="/wiki" title="Wiki" >Wiki</a>-->
+            <a href="/about" title="About lincode" >关于</a>
+            <a href="/atom.xml" rel="feed" title="Subscribes The Feed" target="_blank">RSS</a>
+        </div><!-- .nav -->
+    </div><!-- #header -->
+</div><!-- #head -->
+<div id="content">
+    <p>这里也许有：</p>
 <div class='tagcloud'>
 
 
@@ -45,34 +44,44 @@ $(document).ready(function(){
 
 
 
-<span class=' tag0 '><a href='#test'>test</a></span>
+<span class=' tag0 '><a href='#ObjC'>ObjC</a></span>
+
+
+
+
+
+
+
+
+<span class=' tag0 '><a href='#blog'>blog</a></span>
 
 </div><ul class='archive'>
 	
-	<li class='year' id='test'>test (1)</li>
+	<li id='ObjC' class='year'>ObjC (1)</li>
 	
 	<li class='item'>
-		<time datetime='2012-12-02'>2012-12-02</time>
-		<a title='Thanks for using.' href='/blog/2012/12/02/thanks-for-using/'>Thanks for using.</a>
+		<time datetime='2012-12-06'>2012-12-06</time>
+		<a title='Objective-C 中使用属性 (Properties)' href='/properties-in-objc'>Objective-C 中使用属性 (Properties)</a>
+	</li>	
+	
+	
+	<li id='blog' class='year'>blog (1)</li>
+	
+	<li class='item'>
+		<time datetime='2020-12-24'>2020-12-24</time>
+		<a title='述而不作' href='/why-write-this-blog'>述而不作</a>
 	</li>	
 	
 	
 </ul>
-</div>
-</div>
-
-<div class="footer">
-<!--
-	Copyright GuoJing, Theme designed by GuoJing
-	Theme name Simple
-	If you love this theme, please keep my copyright and link to my blog.
-	If you DON'T LIKE it and you CAN remove the link. but not share spirit.
-	如果你喜欢这个博客构架和皮肤，请保留我作为原作者的权利，我会感谢你。
-	你也可以不保留我作为原作者的权利，自然没有任何问题，但似乎没有共享精神。
--->
-CopryRight and Theme Simple Designed by<a href="http://guojing.me/" target="_blank">GuoJing</a> 2012-2012 by <a href="http://www.github.com/" target="_blank">GitHub</a> and <a href="http://jekyllrb.com/" target="_blank">Jekyll</a>
-</div>
+</div><!-- #content --> 
+<div id="footer">
+    <div class="copyright right">
+        
+        <p>Design by <a href="http://beiyuu.com/about" title="BeiYuu" target="_blank">BeiYuu</a> &copy; Copyright 2012</p>
+        
+    </div>
+</div><!-- #footer -->
 
 </body>
 </html>
-
