@@ -10,8 +10,8 @@ url:              http://lincode.github.com
 feed:             /atom.xml
 author:
     name:         lincode
-description:      "BeiYuu\'s Blog"
-author_info:      <a href="http://www.guo-lin.com/">lincode</a>
+description:      "lincode\'s Blog"
+author_info:      <a href="http://blog.guo-lin.com/about">lincode</a>
 
 copyright:
-    - Design by <a href="http://beiyuu.com/about" title="BeiYuu" target="_blank">BeiYuu</a> &copy; Copyright 2012
+    - Design by <a href="http://beiyuu.com/about" title="beiyuu" target="_blank">Beiyuu</a> &copy; Copyright 2012
