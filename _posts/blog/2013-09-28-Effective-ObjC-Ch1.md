@@ -51,12 +51,12 @@ Objective-C 是 C 的超集，所以在写 Objective-C 时，C 语言的所有�
 有时在 Objective-C 中，你会遇到在定义中没有 * 的变量，它们可能永乐栈空间。这些变量不持有 Objective-C 对象。一个例子是 CoreGrphics 库里的 CGRect：
 
 	CGRect frame;	frame.origin.x = 0.0f;	frame.origin.y = 10.0f;	frame.size.width = 100.0f;
-	frame.size.height = 150.0f;	
+	frame.size.height = 150.0f;
 CGRect是一个 C 结构体，定义如下：
 
 	struct CGRect {
 		CGPoint origin;
-		CGSize size;	};	typedef struct CGRect CGRect;
+		CGSize size;	};	typedef struct CGRect CGRect;
 
 这些结构体类型被广泛用于系统库中，系统库使用 Objective-C 对象的开销可能会影响性能。而结构体并不会有创建对象产生的开销，例如堆内存的分配和销毁。当非对象类型（int, float, double, char, 等）是唯一被持有的数据时，结构体，例如 CGRect，常常会被用到。
 
@@ -69,9 +69,52 @@ Objective-C 是 C 的超集，所以在写 Objective-C 时，C 语言的所有�
 * 理解 C 的核心概念将有助于你写出高效的 Objective-C 代码。特别是要理解内存模型和指针。
 
 
+## 条目 1：减少在头文件引入头文件
 
+在 Objective-C，就像 C 和 C++ 一样，使用头文件和实现文件。当在 Objective-C 中实现一个类时，标准方法是各创建一个与类同名的头文件和实现文件，头文件以 .h 为后缀名，实现文件以 .m 为后缀名。当你创建一个类时，它完成时应该像这样：
 
+	// EOCPerson.h
+	#import <Foundation/Foundation.h>
+	
+	@interface EOCPerson : NSObject	@property (nonatomic, copy) NSString *firstName;	@property (nonatomic, copy) NSString *lastName;	@end
+	// EOCPerson.m	#import "EOCPerson.h"
+	@implementation EOCPerson	// Implementation of methods 	@end
+	在 Objective-C 中创建类要求 Foundation.h 的引入是十分普遍的。或者，你会引入一个库的基础头文件，你继承的类就在这个库中。例如，如果你正在创建一个 iOS 应用，你常创建一些继承了 UIViewController 的类。这些类会引入 UIKit.h。
+如其代表的，这个类很细微。它却引入了整个 Foundation 库，但着没关系。鉴于这个类继承了一个 Foundation 库中的类，库的大部分功能可能会被 EOCPerson 的使用者用到。同样的事情发生在继承了 UIViewController 的类上。它的使用者都会用到 UIKit。随着时间的推移，你可能创建了一个名为 EOCEmploer 的新类。然后，你决定 EOCPerson 的实例应该拥有另一个 EOCPerson 的实例。所以，你继续为类添加一个属性：
+	// EOCPerson.h	#import <Foundation/Foundation.h>	@interface EOCPerson : NSObject	@property (nonatomic, copy) NSString *firstName;	@property (nonatomic, copy) NSString *lastName;	@property (nonatomic, strong) EOCEmployer *employer;	@end
+这其中有一个问题，在编译任何包含了 EOCPerson 的文件时，类 EOCEmlpoyer 并不是可见的。要求所有人在引入 EOCPerson.h 的时候也引入 EOCEmployer.h 是不对的。所以通常的做法是在 EOCPerson.h 顶部加入如下语句：
+	#import "EOCEmployer.h"
+这可行，但却是糟糕的做法。为了编译任何用到了 EOCPerson 的东西，你无需知道 EOCEmployer 的所有实现细节。所有你只需要知道有一个名为 EOCEmployer 的类存在即可。幸运的是，确实存在告诉编译器这么做的方法：
 
+	@class EOCEmployer;这叫做前向声明。EOCPerson 的头文件的结果将会像这样：
+	// EOCPerson.h	#import <Foundation/Foundation.h>		@class EOCEmployer;
+	@interface EOCPerson : NSObject	@property (nonatomic, copy) NSString *firstName;	@property (nonatomic, copy) NSString *lastName; 	@property (nonatomic, strong) EOCEmployer *employer; 	@end	
+EOCPerson 的实现文件之后将需要引入 EOCEmployer 的头文件，因为它需要知道类的全部接口细节以使用这个类。所以实现文件完成时像这样：
+
+	// EOCPerson.m	#import "EOCPerson.h"	#import "EOCEmployer.h"
+	@implementation EOCPerson	// Implementation of methods 	@end
+
+将引入推迟到它正真需要的地方，可以使你限制你的类的使用需要引入的类的范围。如例子中，如果 EOCEmployer.h 被 EOCPerson.h 引入了，所有引入了 EOCPerson.h 的文件都会引入整个 EOCEmployer.h 文件。如果引入链继续，你可能引入大大多于你需要的文件，这将显著增加编译时间。
+
+使用前向声明同时可以缓解两个类相互引用的问题。考虑一下如果 EOCEmployer 有添加和删除雇员的方法将会发生什么，其在头文件中定义如下：
+
+	- (void)addEmployee:(EOCPerson*)person;	- (void)removeEmployee:(EOCPerson*)person;
+
+这时，类 EOCPerson 必须对编译器可见，在相对的情况也是如此 (编译 EOCPerson时，EOCEmployer 必须对编译器可见)。可是，通过在头文件引入一个需要引入自己的头文件的方法会产生鸡和蛋问题。但一个头文件被解析时，它引入了另一个头文件，另一个头文件却引入了前一个头文件。使用 #import 而非 #include 将无法中止这个无限循环，没有一个类可以被正确编译。自己试一下，不要完全相信我！
+
+有时，你仍然需要在一个头文件中引入另外一个头文件。你必须引入定义了你所继承的那个类的头文件。类似地，如果你声明了你的类遵守某个协议，那么你将需要协议的完整定义而不是前向声明。便已去需要可以看到协议定义的方法而不是简单地从前向声明中知道协议的存在。
+
+例如，假定一个类 rectangle 继承了类 shape，并遵守一个允许其画图的协议：
+
+	// EOCRectangle.h	#import "EOCShape.h"	#import "EOCDrawable.h"
+	@interface EOCRectangle : EOCShape <EOCDrawable> 	@property (nonatomic, assign) float width; 	@property (nonatomic, assign) float height;	@end额外的引入是不可避免的。因为协议而引入包含协议的头文件时要慎重。如果协议 EOCDrawable 是一个很大的头文件的一部分，你必须将它门全部引入，从而制造了相同的依赖和前面所描述的额外的编译时间。
+不是所有的协议，例如委托协议（见条目 23），都需要一个自己单独的文件。在这样例子中，作为类的委托协议，只有和被它委托的类比肩在一起，协议才是有意义的。在这种情况下，最好声明你会在类的目录中实现委托（见条目 27）。这意味着可以在实现文件中，而不是在公开的头文件中，引入包含委托协议的头文件。 
+当在头文件中写入一个引入时，总要问一下自己是否是真的需要的。如果引入可以被前向声明代替，那么就前向声明。如果为了属性，实例变量，或者遵守某个协议而引入头文件，那么可以将其移到类的目录（见条目 27）中。这么做，可以保证编译时间尽可能的短，并减少起维护问题的相互依赖，并减少在公共 API 中过多暴露出你的代码的问题。这些都是你应该要做到的。
+### 记住
+
+* 总是尽可能拖后引用头文件。这通常意味着在头文件中使用前向声明，而在实现文件中引入对应的头文件。这样做可以尽量避免类之间的耦合。
+
+* 有时，无法做到前向声明，比如当声明遵守协议的时候。这种情况下，如果可能，考虑把遵守协议的声明放入类的目录中。否则，只引入定义了协议的头文件。
 
 
 
