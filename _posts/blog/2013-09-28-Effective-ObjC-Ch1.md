@@ -69,7 +69,7 @@ Objective-C 是 C 的超集，所以在写 Objective-C 时，C 语言的所有�
 * 理解 C 的核心概念将有助于你写出高效的 Objective-C 代码。特别是要理解内存模型和指针。
 
 
-## 条目 1：减少在头文件引入头文件
+## 条目 2：减少在头文件引入头文件
 
 在 Objective-C，就像 C 和 C++ 一样，使用头文件和实现文件。当在 Objective-C 中实现一个类时，标准方法是各创建一个与类同名的头文件和实现文件，头文件以 .h 为后缀名，实现文件以 .m 为后缀名。当你创建一个类时，它完成时应该像这样：
 
@@ -78,8 +78,7 @@ Objective-C 是 C 的超集，所以在写 Objective-C 时，C 语言的所有�
 	
 	@interface EOCPerson : NSObject	@property (nonatomic, copy) NSString *firstName;	@property (nonatomic, copy) NSString *lastName;	@end
 	// EOCPerson.m	#import "EOCPerson.h"
-	@implementation EOCPerson	// Implementation of methods 	@end
-	在 Objective-C 中创建类要求 Foundation.h 的引入是十分普遍的。或者，你会引入一个库的基础头文件，你继承的类就在这个库中。例如，如果你正在创建一个 iOS 应用，你常创建一些继承了 UIViewController 的类。这些类会引入 UIKit.h。
+	@implementation EOCPerson	// Implementation of methods 	@end在 Objective-C 中创建类要求 Foundation.h 的引入是十分普遍的。或者，你会引入一个库的基础头文件，你继承的类就在这个库中。例如，如果你正在创建一个 iOS 应用，你常创建一些继承了 UIViewController 的类。这些类会引入 UIKit.h。
 如其代表的，这个类很细微。它却引入了整个 Foundation 库，但着没关系。鉴于这个类继承了一个 Foundation 库中的类，库的大部分功能可能会被 EOCPerson 的使用者用到。同样的事情发生在继承了 UIViewController 的类上。它的使用者都会用到 UIKit。随着时间的推移，你可能创建了一个名为 EOCEmploer 的新类。然后，你决定 EOCPerson 的实例应该拥有另一个 EOCPerson 的实例。所以，你继续为类添加一个属性：
 	// EOCPerson.h	#import <Foundation/Foundation.h>	@interface EOCPerson : NSObject	@property (nonatomic, copy) NSString *firstName;	@property (nonatomic, copy) NSString *lastName;	@property (nonatomic, strong) EOCEmployer *employer;	@end
 这其中有一个问题，在编译任何包含了 EOCPerson 的文件时，类 EOCEmlpoyer 并不是可见的。要求所有人在引入 EOCPerson.h 的时候也引入 EOCEmployer.h 是不对的。所以通常的做法是在 EOCPerson.h 顶部加入如下语句：
@@ -112,13 +111,9 @@ EOCPerson 的实现文件之后将需要引入 EOCEmployer 的头文件，因为
 当在头文件中写入一个引入时，总要问一下自己是否是真的需要的。如果引入可以被前向声明代替，那么就前向声明。如果为了属性，实例变量，或者遵守某个协议而引入头文件，那么可以将其移到类的目录（见条目 27）中。这么做，可以保证编译时间尽可能的短，并减少起维护问题的相互依赖，并减少在公共 API 中过多暴露出你的代码的问题。这些都是你应该要做到的。
 ### 记住
 
-* 总是尽可能拖后引用头文件。这通常意味着在头文件中使用前向声明，而在实现文件中引入对应的头文件。这样做可以尽量避免类之间的耦合。
+* 总是尽可能拖后引用头文件。这通常意味着在头文件中使用前向声明，而在实现文件中引入对应的头文件。这样做可以做到竟可能地避免类之间的耦合。
 
 * 有时，无法做到前向声明，比如当声明遵守协议的时候。这种情况下，如果可能，考虑把遵守协议的声明放入类的目录中。否则，只引入定义了协议的头文件。
-
-
-
-
 
 
 
