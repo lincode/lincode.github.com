@@ -2,7 +2,7 @@
 layout:    post
 title:     Effective Objective-C Chapter 1
 category:  blog
-description: 了解 Objective－C
+description: 了解 Objective-C
 tags: ObjC
 ---
 
@@ -175,12 +175,143 @@ EOCPerson 的实现文件之后将需要引入 EOCEmployer 的头文件，因为
 
 ### 记住
 
-* 总是尽可能拖后引用头文件。这通常意味着在头文件中使用前向声明，而在实现文件中引入对应的头文件。这样做可以做到竟可能地避免类之间的耦合。
+* 总是尽可能拖后引用头文件。这通常意味着在头文件中使用前向声明，而在实现文件中引入对应的头文件。这样做可以做到尽可能地避免类之间的耦合。
 
 * 有时，无法做到前向声明，比如当声明遵守协议的时候。这种情况下，如果可能，考虑把遵守协议的声明放入类的目录中。否则，只引入定义了协议的头文件。
 
 
+## 条目 3：文字语法优于与其等价的方法
+在使用 Objective-C 时，你时常会遇到一些类。它们都是 Foundation 库的一部分。虽然技术上来讲，你并不是必须使用 Foundation 库来写 Objective-C 代码，但是实践中，你通常会用上它。这些类是 NSString, NSNumber, NSArray, 和 NSDictionary。数据结构从名字上看便知道其用途。
 
+Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-C 1.0 开始，就有非常便捷的方法创建一个 NSString 对象。这就是文字字符串，看起来如下：
+
+	NSString *someString = @"Effective Objective-C 2.0";
+
+如果没有这个语法，创建一个 NSString 对象将需要以惯常的 alloc 和 init 方法调用来分配和初始化一个 NSString 对象。幸运的是，这个语法，以文字描述，在近几个版本的编译器中被扩展到了 NSNumber, NSArray, NSDictionary。使用文字语法可以减少代码量，使得代码更易读。
+
+### 文字语法数字
+
+有时，你需要将整数，浮点数，布尔值包装为一个 Objective-C 对象。你可以使用 NSNumber 类来完成这项工作，它能处理一系列数字类型。如果没有文字语法，你需要如此创建一个数字对象：
+
+	NSNumber *someNumber = [NSNumber numberWithInt:1];
+
+这创建了一个整数，其值设为 1。但，使用文字语法将使它更清楚：
+
+	NSNumber *someNumber = @1;
+	
+如你所见，文字语法更为简洁。但是，不仅仅如此。语法同时也覆盖所有 NSNumber 实例可以表达的数据类型。例如：
+
+	NSNumber *intNumber = @1;
+	NSNumber *floatNumber = @2.5f;
+    NSNumber *doubleNumber = @3.14159;
+    NSNumber *boolNumber = @YES;
+    NSNumber *charNumber = @'a';
+
+文字语法也可以如此表达：
+
+
+	int x = 5;
+    float y = 6.32f;
+    NSNumber *expressionNumber = @(x * y);
+
+使用数字的文字语法是非常有用的。这么做使得 NSNumber 对象更为清楚，因为，声明的大部分本身就是数值，而不是繁复的语法。
+
+### 文字语法数组
+数组是一个常用数据结构。没有文字语法，你需要如此创建一个数组：
+
+	NSArray *animals = [NSArray arrayWithObjects:@"cat", @"dog", 
+												  @"mouse", @"badger", nil];
+
+使用文字语法，只要求如下语句：
+
+	NSArray *animals = @[@"cat", @"dog", @"mouse", @"badger"];
+
+虽然这已是个相当简单的语法，但仍不仅如此。一个普遍的操作是取数组特定下标下的对象。使用文字语法也能简化这个操作。通常的，你会使用 objectiveAtIndex: 方法：
+
+	NSString *dog = [animals objectAtIndex:1];
+
+使用文字语法，就变成如下代码：
+
+	NSString *dog = animals[1];
+
+下标，如同其他文字语法一样使得要做的事情看起来更为简洁。并且，它看起来也和其他语言的数组索引语法类似。
+
+可以，使用文字语法创建数组时，你需要注意一件事情。如果任何对象是 nil，一个异常将会被抛出。因为文字语法只是一个语法糖，它创建数组并向数组添加方括号里的所有对象。你看到的异常会是这样：
+
+	*** Terminating app due to uncaught exception	'NSInvalidArgumentException', reason: '***	-[__NSPlaceholderArray initWithObjects:count:]: attempt to	insert nil object from objects[0]'
+
+这表明了一个使用文字语法的共同问题。下面的代码创建了两个数组，使用了两种语法：
+        
+   id object1 = /* ... */;
+   id object2 = /* ... */;
+   id object3 = /* ... */;
+
+   NSArray *arrayA = [NSArray arrayWithObjects:object1, object2, object3, nil];	NSArray *arrayB = @[object1, object2, object3];
+
+想在考虑一下这样一个场景：object1 和 object3 指向一个合法 Objective-C 对象，但是 object2 是 nil。文字语法数组，arrayB，将导致异常被抛出。可是，arrayA 仍然会被创建，但只包含 object1。原因是方法 arrayWithObjects: 浏览可变参数直到遇到 nil。这个场景中，比预期的早了一些。
+
+这个微妙的不同意味着文字语法更为安全。抛出异常可能导致应用崩溃，比创建一个比预期中包含了对象更少的数组，要更好一些。一个程序员的错误最有可能导致向数组插入 nil，异常的抛出使得 bug 更容易被发现。
+
+### 文字语法字典
+字典提供了一个在图中添加键值对的数据结构。如数组一样，字典在 Objective-C 代码中使用得很广泛。过去如此创建字典：
+
+	NSDictionary *personData = [NSDictionary dictionaryWithObjectsAndKeys:@"Matt", @"firstName", 
+                               @"Galloway", @"lastName", 
+                               [NSNumber numberWithInt:28], @"age", nil];
+
+这相当令人困惑，因为顺序是 <object>，<key>，<object>，<key>，等等。可是，你常常会以键到值得方式思考一个字典。因此，它相当不好阅读。可是，文字语法再次提供了更清晰的语法：
+
+	NSDictionary *personData = @{@"firstName" : @"Matt",
+                                 @"lastName" : @"Galloway",
+                                 @"age" : @28};
+
+这非常简洁，键总是在值之前，如果你期望的那样。同时，注意到数字也可以文字语法的形式表达，这相当有用。对象和值都必须是 Objective-C 对象，所以你不能存储整数 28；必须要讲起包装为一个 NSNumber 实例。但是文字语法意味这简单的只是多了一个额外的字符。
+
+就像数组一样，字典的文字语法在插入任何 nil 值时，也会抛出异常。可是，基于相同的理由，这是件好事。这意味，如果通过遇到 nil 会停止浏览的 dictionaryWithObjectsAndKeys: 创建字典会丢失一些值，而文字语法会抛出异常。
+
+同时和数组类似，字典可以通过文字语法访问。旧的通过特定键值访问的方法如下：
+
+	NSString *lastName = [personData objectForKey:@"lastName"];
+
+对应的文字语法：
+	
+	NSString *lastName = personData[@"lastName"];
+
+再一次，多余的语句减少了，留下了易读的代码。
+
+
+### 可变数组和字典
+用相同的方法，你可以通过下标索引数组和访问字典。如果它是可变的，你也可以为其赋值。通过普通方法为数组和字典赋值，就像这样：
+
+	[mutableArray replaceObjectAtIndex:1 withObject:@"dog"];
+    [mutableDictionary setObject:@"Galloway" forKey:@"lastName"];
+
+通过下标赋值，则像这样：
+
+	mutableArray[1] = @"dog";
+    mutableDictionary[@"lastName"] = @"Galloway";
+
+### 限制
+文字语法的一个小限制是，除了字符串，创建的对象必须来自 Foundation 库。没有办法指定你自己的子类通过文字语法来创建。如果你要创建一个自己的子类的实例，你需要使用非文字语法。可是，因为 NSArray，NSDictionary，和 NSNumber 是类簇（见条目 9），它们很少被继承，因为，这么做并不简单。同时，标准实现也已经足够好了。String 可以使用客户类，但是必须改变编译器选项。使用这个选择是不被鼓励的，除非你知道你在做什么。
+
+同时，在字符串，数组，字典的情况下，只有不可变变量可以被用于文字语法的创建过程。如果要求可变变量，则制作一个可变变量的拷贝，就像这样：
+
+	NSMutableArray *mutable = [@[@1, @2, @3, @4, @5] mutableCopy];
+
+这里添加了一个额外的方法调用，一个额外的对象被创建了。因此，虽然使用文字语法有好处，但在这儿有些得不偿失。
+
+### 记住
+
+* 使用文字语法创建字符串，数字，数组，和字典。这比使用普通的创建对象方法更为清楚和简洁。
+
+* 索引数组或者在字典中取值使用下标方法。
+
+* 试图向数组或者字典插入 nil 会导致异常被抛出。因此，要确认插入值不为 nil。  
+
+## 条目 4：常量优于预处理 ＃define
+
+
+## 条目 5：表达状态，可选项，状态码时使用枚举
 
 
 
