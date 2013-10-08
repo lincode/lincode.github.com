@@ -241,7 +241,7 @@ Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-
 	*** Terminating app due to uncaught exception	'NSInvalidArgumentException', reason: '***	-[__NSPlaceholderArray initWithObjects:count:]: attempt to	insert nil object from objects[0]'
 
 这表明了一个使用文字语法的共同问题。下面的代码创建了两个数组，使用了两种语法：
-        
+
    id object1 = /* ... */;
    id object2 = /* ... */;
    id object3 = /* ... */;
@@ -255,7 +255,8 @@ Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-
 ### 文字语法字典
 字典提供了一个在图中添加键值对的数据结构。如数组一样，字典在 Objective-C 代码中使用得很广泛。过去如此创建字典：
 
-	NSDictionary *personData = [NSDictionary dictionaryWithObjectsAndKeys:@"Matt", @"firstName", 
+	NSDictionary *personData = 
+		[NSDictionary dictionaryWithObjectsAndKeys:@"Matt", @"firstName", 
                                @"Galloway", @"lastName", 
                                [NSNumber numberWithInt:28], @"age", nil];
 
@@ -311,7 +312,27 @@ Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-
 ## 条目 4：常量优于预处理 ＃define
 
 
+### 记住
+
+* 避免预处理定义。它们不包含个人和类型信息，编译器只是简单地查找和替换。他们可能被重定义而无任何警告，在一个应用中产生不同地不一致的值。
+
+* 在实现文件中，以 static const 定义单元明确可翻译的常量。这些常量将不会被暴露在全局符号表中，所以它们的名字无需注意名字空间问题。
+
+* 在头文件中将全局常量定义为外部的，再在相关的实现文件中定义它们。这些常量将出现在全局符号表中。所以，它们的名字应该注意名字空间问题，通常是在它们将它们所属类的名字为前缀。
+
 ## 条目 5：表达状态，可选项，状态码时使用枚举
+
+### 记住
+
+* 使用枚举给予状态机的状态，传递给方法的选项或者错误代码的值以可读的名字。
+
+* 如果一个枚举类型定义了传递给方法的可以同时使用的选项，将其值定义为 2 的幂，以使得多个值可以通过位与操作同时使用。
+
+* 使用 NS_ENUM 和 NS_OPTIONS 宏定义以显式类型定义枚举类型。这么做意味着类型被确保为我们选择的类型，而不是编译器选择的类型。
+
+* 在一个处理枚举类型的 switch 语句中不要实现 default case。这将有所帮助。因为，如果你添加了枚举项，编译器将警告 switch 没有处理所有的枚举值。
+
+ 
 
 
 
