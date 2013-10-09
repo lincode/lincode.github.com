@@ -238,7 +238,7 @@ Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-
 
 可以，使用文字语法创建数组时，你需要注意一件事情。如果任何对象是 nil，一个异常将会被抛出。因为文字语法只是一个语法糖，它创建数组并向数组添加方括号里的所有对象。你看到的异常会是这样：
 
-	*** Terminating app due to uncaught exception	'NSInvalidArgumentException', reason: '***	-[__NSPlaceholderArray initWithObjects:count:]: attempt to	insert nil object from objects[0]'
+	*** Terminating app due to uncaught exception 'NSInvalidArgumentException', reason: '***	-[__NSPlaceholderArray initWithObjects:count:]: attempt to	insert nil object from objects[0]'
 
 这表明了一个使用文字语法的共同问题。下面的代码创建了两个数组，使用了两种语法：
 
@@ -310,7 +310,112 @@ Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-
 * 试图向数组或者字典插入 nil 会导致异常被抛出。因此，要确认插入值不为 nil。  
 
 ## 条目 4：常量优于预处理 ＃define
+写代码时，你经常定义一些常量。例如，考虑一个可以通过动画自我呈现和消失的 UI 视图类。一个你很可能会典型常量是动画持续时间。你已学完了关于 Objective-C 和 C 的基础，所以你使用如下方法定义常量：
 
+	#define ANIMATION_DURATION 0.3
+
+这是一个预处理命令；源代码中的任何字符串 ANIMATION_DURATION 都会被替换为 0.3。这看起来似乎正是你需要的，但是这个定义没有类型信息。它似乎是某个被声明为与时间相关的值，但是这并不是显式的。同时，预处理将会盲目地替换为所有它遇到的 ANIMATION_DURATION，所以，如果在头文件中声明了它，引入的其他的头文件也会被替换。
+
+为了解决这个问题，你应该借助编译器。总是有一些比比使用预处理更好的定义常量的方法。例如，一下定义了一个了 NSTimeInterval 类型的常量：
+
+	static const NSTimeInterval kAnimationDuration = 0.3;
+
+注意，使用这种风格，会带上类型信息。这是很有益的，因为它清楚定义了常量是什么。类型是 NSTimeInterval，这也对文档化变量的使用有帮助。如果你有很多变量要定义，这将确实帮助到你和其他之后会阅读到代码的人。
+
+同时，注意到变量是如何命名的。通常的约定是以字母 k 为在作用域（实现文件）里的常量的前缀。对于那些暴露给外部的常量，通常以类名为前缀。条目 19 更详细地解释了命名规则。
+
+在什么地方定义你的常量是十分重要的。有时，你会试图在头文件中声明预处理定义，但这显然是不好的实践，特别是定义名字时还以不会相互避开的方式。例如，ANIMATION_DURATION 常量如果出现在头文件中，可能就是个不好的名字。它可能出现在其它的被引入的头文件中。甚至，以 static const 开头定义的变量也不应该出现在头文件中。因为，Objective-C 没有命名空间，它将声明一个叫 kAnimationDuration 全局变量。它的名字应该以某些字符为前缀，前缀应是用到它的类的类名，例如，EOCViewClassAnimationDuration。条目 19 更详细地解释了如何使清晰地命名。
+
+一个无需向外暴露的常量应该被定义在使用它的实现文件中。例如，如果代表动画持续时间的常量被使用在一个 UIView 的子类中，因为是一个 iOS 应用，所以使用了 UIlit，它看起来就像这样：
+
+	// EOCAnimatedView.h
+	#import <UIKit/UIKit.h>
+
+	@interface EOCAnimatedView : UIView 
+    - (void)animate;	
+    @end	
+	
+    // EOCAnimatedView.m	
+	#import "EOCAnimatedView.h"	
+
+    static const NSTimeInterval kAnimationDuration = 0.3;
+
+	@implementation EOCAnimatedView
+    - (void)animate {
+        [UIView animateWithDuration:kAnimationDuration
+        	             animations:^(){	
+    }	
+    @end
+
+将变量声明为 static 和 const 是很重要的。const 标示符意味着编译器会抛出一个错误，如果你试图改变常量的值的话。在这个场景中，这正是我们所期望的。常量的值不允许被改变。static 标示符意味着变量是属于其被定义的翻译单元的。一个翻译单元就是一个编译器接收的输入并产生的一个对象文件。在 Objective-C 的例子里，这通常意味着一个类对应一个翻译单元：每个实现文件（.m）。所以在前面的例子中，kAnimationDuration 将被声明为属于 EOCAnicatedView.m 所产生的文件对象。如果变量没有被声明为 static，那么编译器将为其创建一个外部标示。如果其它翻译单元也声明了一个同名变量，链接器会抛出一个和这类似的错误信息：
+
+    duplicate symbol _kAnimationDuration in:
+    EOCAnimatedView.o
+    EOCOtherView.o
+
+实际上，当声明一个变量为 static 和 const 时，编译器并没有创建一个标示，只是和预处理一样替换定义的变量。但是，记住，好处是有了类型信息。
+
+有时，你会向外暴露常量。例如，如果你的类将要通知其它使用了 NSNotificationCenter 的类，你可能就会这么做。这项工作是由一个对象发布提醒，其它注册过的类则接收提醒。提醒有一个字符串名，这就是你需要显式声明的外部可见的常量。这么做意味这任何要注册接收这个提醒的人都不需要知道提醒的真正地字符串名，而仅仅简单地使用常量即可。
+
+这个常量需要出现在全局标示列表中，以备被其所定义地翻译单元的外部使用。因此，这些常量需要以不同与 static const 的例子的方式声明。这些常量需要如此定义：
+
+	// In the header file
+    extern NSString *const EOCStringConstant; 
+
+    // In the implementation file
+    NSString *const EOCStringConstant = @"VALUE";
+
+常量在头文件中声明，并在实现文件中定义。在常量的类型中，放置 const 标示符是很重要的。这些定义是向后读的，意味着，在这个例子中，EOCStringConstant 是一个指向 NSString 的指针常量。这正是我们需要的；常量不应该被改变指向其它不同的 NSString 对象。
+
+在头文件中的关键字 extern 告知编译器在引入一个文件时遇到常量时需要做什么。关键字告诉编译器将有一个名为 EOCStringConstant 的标示在全局标示列表中。这意味着这个常量即使在编译器看不到它的定义时，也可被使用。编译器只是简单地知道在二进制文件被链接时，常量会存在。
+
+常量必须且只能被定义一次。通常在和声明它的头文件对应的实现文件中定义它。编译器将会在这个实现文件所生成的文件对象的数据段为这个字符串分配存储空间。当这个文件对象与其它文件对象链接产生二进制文件时，无论其被在哪里使用，链接器将能够解析全局标示 EOCStringConstant。
+
+标示出现在全局标示列表中意味着你为常量命名时应该小心。例如，一个为某个应用处理登录的类可能会在登录完成后发出一个提醒。这个提醒可能看起来像这样：
+
+	// EOCLoginManager.h
+    #import <Foundation/Foundation.h>
+
+	extern NSString *const EOCLoginManagerDidLoginNotification;
+
+
+	@interface EOCLoginManager : NSObject 
+	- (void)login;
+    @end
+
+
+	// EOCLoginManager.h
+    #import "EOCLoginManager.h"
+
+	NSString *const EOCLoginManagerDidLoginNotification = @"EOCLoginManagerDidLoginNotification";
+
+
+	@implementation EOCLoginManager
+
+    - (void)login {
+    // Perform login asynchronously, then call 'p_didLogin'.
+    }
+
+    - (void)p_didLogin {    	
+     [[NSNotificationCenter defaultCenter] postNotificationName:EOCLoginManagerDidLoginNotification 
+                                                         object:nil];
+     }
+
+     @end
+
+注意给常量的名字。与常量相关的类的名字为前缀是个慎重的命名法，这会帮助你避免潜在的冲突。在系统库中，通常如此这样命名。例如，UIkit，以相同的方法将提醒的名字声明为全局变量。这些名字包括 UIApplicationDidEnterBackgroundNotification 和 UIApplicationWillEnterForegroundNotification。
+
+同样的方法也可以用于其他类型的常量。如果前面的例子中的动画持续时间需要暴露给 EOCAnimationView 以外的类，你可以如此声明：
+
+	// EOCAnimatedView.h
+    extern const NSTimeInterval EOCAnimatedViewAnimationDuration; 
+    
+    // EOCAnimatedView.m
+    const NSTimeInterval EOCAnimatedViewAnimationDuration = 0.3;
+
+这种方法定义常量比预处理更好，因为编译器可以帮忙确定常量值不会被改变。一旦，定义在 EOCAnimatedView.m，它的值就可以到处使用。一个预处理定义可以因为错误而被重新定义，这意味着不同部分的应用使用了不同的值。
+
+总地来说，避免使用预处理定义常量。作为代替，使用对编译器可见地常量，例如 static const 和实现文件中的全局定义。
 
 ### 记住
 
