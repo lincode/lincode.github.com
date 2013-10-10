@@ -500,7 +500,7 @@ C++ 11 标准的到来为枚举类型带来了一些改变。一个变化就是�
         // UIViewAutoresizingFlexibleWidth is set	
     }
 
-![alt enum](/images/blog/EffectiveObjC/enum.png "Enum bit layout")
+![alt enum](/images/blog/EffectiveObjC/Enum.png "Enum bit layout")
 
 这广泛用于系统库中。另外一个例子来自于 iOS UI 库 UIKit，使用这个枚举告知系统你的视图所支持的设备朝向。这是通过一个叫 UIInterfaceOrientationMask 枚举类型完成的，你实现一个名为 supportedInterfaceOrientations 的方法，指明所支持的设备朝向：
 
@@ -609,11 +609,3 @@ NS_OPTIONS 宏根据是否是 C++ 编译器而使用另外不同定义方法。�
 * 使用 NS_ENUM 和 NS_OPTIONS 宏定义以显式类型定义的枚举类型。这么做意味着枚举成员的类型被确保为我们选择的类型，而不是编译器选择的类型。
 
 * 在一个处理枚举类型的 switch 语句中不要实现 default case。这将有所帮助。因为，如果你添加了枚举项，编译器将警告 switch 没有处理所有的枚举值。
-
- 
-
-
-
-
-
-
