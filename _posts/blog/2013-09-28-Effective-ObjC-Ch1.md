@@ -238,7 +238,8 @@ Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-
 
 可以，使用文字语法创建数组时，你需要注意一件事情。如果任何对象是 nil，一个异常将会被抛出。因为文字语法只是一个语法糖，它创建数组并向数组添加方括号里的所有对象。你看到的异常会是这样：
 
-	*** Terminating app due to uncaught exception 'NSInvalidArgumentException', reason: '***	-[__NSPlaceholderArray initWithObjects:count:]: attempt to	insert nil object from objects[0]'
+	*** Terminating app due to uncaught exception 'NSInvalidArgumentException', 
+    reason: '***-[__NSPlaceholderArray initWithObjects:count:]: attempt to insert nil object from objects[0]'
 
 这表明了一个使用文字语法的共同问题。下面的代码创建了两个数组，使用了两种语法：
 
@@ -246,7 +247,8 @@ Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-
    id object2 = /* ... */;
    id object3 = /* ... */;
 
-   NSArray *arrayA = [NSArray arrayWithObjects:object1, object2, object3, nil];	NSArray *arrayB = @[object1, object2, object3];
+   NSArray *arrayA = [NSArray arrayWithObjects:object1, object2, object3, nil];
+   NSArray *arrayB = @[object1, object2, object3];
 
 想在考虑一下这样一个场景：object1 和 object3 指向一个合法 Objective-C 对象，但是 object2 是 nil。文字语法数组，arrayB，将导致异常被抛出。可是，arrayA 仍然会被创建，但只包含 object1。原因是方法 arrayWithObjects: 浏览可变参数直到遇到 nil。这个场景中，比预期的早了一些。
 
