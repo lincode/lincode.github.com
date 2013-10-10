@@ -75,7 +75,7 @@ CGRect是一个 C 结构体，定义如下：
 
 着手写 Objective-C 之前，我鼓励你阅读一些关于 C 语言的资料，熟悉 C 的语法。如果你直接深入 Objective-C，你可能会发现自己对它的一些语法感到困惑。
 
-### 记住
+### 要点回顾
 
 * Objective-C 是 C 的超集，加入了面向对象特性。Objective-C 使用动态绑定的消息分发机制，这意味着对象的类型是在运行时才被发现的。运行时，而不是编译器，决定了那段代码会在接收到消息后运行。
 
@@ -173,7 +173,7 @@ EOCPerson 的实现文件之后将需要引入 EOCEmployer 的头文件，因为
 不是所有的协议，例如委托协议（见条目 23），都需要一个自己单独的文件。在这样例子中，作为类的委托协议，只有和被它委托的类比肩在一起，协议才是有意义的。在这种情况下，最好声明你会在类的目录中实现委托（见条目 27）。这意味着可以在实现文件中，而不是在公开的头文件中，引入包含委托协议的头文件。 
 当在头文件中写入一个引入时，总要问一下自己是否是真的需要的。如果引入可以被前向声明代替，那么就前向声明。如果为了属性，实例变量，或者遵守某个协议而引入头文件，那么可以将其移到类的目录（见条目 27）中。这么做，可以保证编译时间尽可能的短，并减少起维护问题的相互依赖，并减少在公共 API 中过多暴露出你的代码的问题。这些都是你应该要做到的。
 
-### 记住
+### 要点回顾
 
 * 总是尽可能拖后引用头文件。这通常意味着在头文件中使用前向声明，而在实现文件中引入对应的头文件。这样做可以做到尽可能地避免类之间的耦合。
 
@@ -301,7 +301,7 @@ Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-
 
 这里添加了一个额外的方法调用，一个额外的对象被创建了。因此，虽然使用文字语法有好处，但在这儿有些得不偿失。
 
-### 记住
+### 要点回顾
 
 * 使用文字语法创建字符串，数字，数组，和字典。这比使用普通的创建对象方法更为清楚和简洁。
 
@@ -415,9 +415,9 @@ Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-
 
 这种方法定义常量比预处理更好，因为编译器可以帮忙确定常量值不会被改变。一旦，定义在 EOCAnimatedView.m，它的值就可以到处使用。一个预处理定义可以因为错误而被重新定义，这意味着不同部分的应用使用了不同的值。
 
-总地来说，避免使用预处理定义常量。作为代替，使用对编译器可见地常量，例如 static const 和实现文件中的全局定义。
+总的来说，避免使用预处理定义常量。作为代替，使用对编译器可见地常量，例如 static const 和实现文件中的全局定义。
 
-### 记住
+### 要点回顾
 
 * 避免预处理定义。它们不包含个人和类型信息，编译器只是简单地查找和替换。他们可能被重定义而无任何警告，在一个应用中产生不同地不一致的值。
 
@@ -425,15 +425,188 @@ Objective-C 以复杂的语法著称。这时真的。但是，自从 Objective-
 
 * 在头文件中将全局常量定义为外部的，再在相关的实现文件中定义它们。这些常量将出现在全局符号表中。所以，它们的名字应该注意名字空间问题，通常是在它们将它们所属类的名字为前缀。
 
+
 ## 条目 5：表达状态，可选项，状态码时使用枚举
 
-### 记住
+因为 Objective-C 基于 C 语言，所以 C 的所有功能对于 Objective-C 而言都是可用的。其中就有枚举类型，enum。它广泛用于系统库但却常常被开发者忽视。这是一个相当有用的可用于定义常量的方法，例如，一个错误代码可被定义为一组相关的选项。由于 C++ 11 标准，最近版本的系统库包含了定义枚举类型的方法。而 Objective-C 也获益于 C++ 11 标准。
+
+一个枚举仅仅只是一种常量命名方法。一个简单的枚举集合可被用于定义一个对象所经历的状态。例如，socket 连接可以使用如下枚举：
+
+	enum EOCConnectionState { 
+	     EOCConnectionStateDisconnected, 
+	     EOCConnectionStateConnecting, 
+	     EOCConnectionStateConnected,	
+    };
+
+使用枚举意味着代码是可读的，因为每个状态都可被隐射为一个易读的值。编译器给每个枚举成员唯一值，从 0 开始每个成员都增加 1。支持这样的枚举的类型是编译器独立的，但是必须至少有足够的位来表达全部枚举值。在前面的例子中，只需要一个 char （一个字节），因为最大值是 2。
+
+这样定义枚举的风格并不是特别有用，因为，它要求如下语法：
+
+    enum EOCConnectionState state = EOCConnectionStateDisconnected;
+
+有一种更为简单的方法，不用每次都输入 enum 而仅仅只要输入枚举名 EOCConnectionState。为了达到这个目的，你需要在定义枚举时增加 typedef：
+
+	enum EOCConnectionState { 
+	     EOCConnectionStateDisconnected, 
+	     EOCConnectionStateConnecting, 
+	     EOCConnectionStateConnected,	
+    };
+	typedef enum EOCConnectionState EOCConnectionState;
+
+这意味着 EOCConnectionState 可以替代 enum EOCConnectionState 被使用：
+
+	EOCConnectionState state = EOCConnectionStateDisconnected;
+
+C++ 11 标准的到来为枚举类型带来了一些改变。一个变化就是可以指定枚举类型存储的变量的相关类型。这么做的好处是你可以前向声明枚举类型了。不指定相关类型，一个枚举类型不能做前向声明，因为编译器不知道相关类型的大小。因此，当类型被使用时，编译器不能知道应该为变量分配多少空间。
+
+指定类型，你可以使用如下语法：
+
+	enum EOCConnectionStateConnectionState : NSInteger { /* ... */ };
+
+这意味着枚举成员被保证一定是 NSInteger。如果你希望如此，类型可以被如此前向声明：
+
+	enum EOCConnectionStateConnectionState : NSInteger;
+
+也可能定义枚举中特定成员的值，而不是让编译器为你选一个值。语法如下：
+
+	enum EOCConnectionStateConnectionState { 
+		EOCConnectionStateDisconnected = 1, 
+		EOCConnectionStateConnecting, 
+		EOCConnectionStateConnected,	
+    };
+
+这意味着 EOCConnectionStateDisconnected 将为 1 而不是 0。后面的值将如前面一样，每次自增 1。因此，EOCConnectionStateConnected 将为 3。
+
+另外一个使用枚举类型的理由是定义选项，特别是选项是相互关联的一组变量时。如果枚举被正确定义，选项可以通过位或操作联合使用。例如，考虑如下一个在 iOS UI 库找到的枚举类型，它用于定义一个视图可以以何种方式被重置大小：
+
+	enum UIViewAutoresizing {	
+         UIViewAutoresizingNone = 0,
+	     UIViewAutoresizingFlexibleLeftMargin = 1 << 0,
+	     UIViewAutoresizingFlexibleWidth = 1 << 1,
+	     UIViewAutoresizingFlexibleRightMargin = 1 << 2,
+         UIViewAutoresizingFlexibleTopMargin = 1 << 3,	
+         UIViewAutoresizingFlexibleHeight = 1 << 4,	
+         UIViewAutoresizingFlexibleBottomMargin = 1 << 5,	
+    }
+
+使用前述语法，每个选项都可以打开或关闭，因为，每个选项都仅仅使用一位表示。多个选项可以通过位或一同使用：例如，UIViewAutoResizingFlexibleWidth | UIViewAutoresizingFlexibleHeight 。图 1.2 展示了枚举的每个成员的位示意图，和两个联合选项的位示意图。
+
+也可以使用位与操作来确定某个选项是否被设置了：
+
+    enum UIVewAutoresizing resizing = 
+		UIViewAutoresizingFlexibleWidth | 	
+		UIViewAutoresizingFlexibleHeight;
+    if (resizing & UIViewAutoresizingFlexibleWidth) {	 
+        // UIViewAutoresizingFlexibleWidth is set	
+    }
+
+![alt enum](/images/blog/EffectiveObjC/enum.png "Enum bit layout")
+
+这广泛用于系统库中。另外一个例子来自于 iOS UI 库 UIKit，使用这个枚举告知系统你的视图所支持的设备朝向。这是通过一个叫 UIInterfaceOrientationMask 枚举类型完成的，你实现一个名为 supportedInterfaceOrientations 的方法，指明所支持的设备朝向：
+
+	- (NSUInteger)supportedInterfaceOrientations {
+		return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskLandscapeLeft;
+    }
+
+Foundation 库中两个便利方法，可帮助你定义指定在其中使用整型存储枚举成员的枚举类型。便利方法提供后向兼容，如果你针对新标准的编译器开发的话，新语法被使用；如果不是的话，就退回到旧语法。便利方法以预定义 #define 宏的形式提供。一个例子，定义了如 EOCConnectionState 普通枚举类型。另外一个定义如 UIViewAutoresizing 选项列表。如下：
+
+	typedef NS_ENUM(NSUInteger, EOCConnectionState) { 
+            EOCConnectionStateDisconnected, 	
+            EOCConnectionStateConnecting, 
+            EOCConnectionStateConnected,	
+    };	
+
+    typedef NS_OPTIONS(NSUInteger, EOCPermittedDirection) {    
+            EOCPermittedDirectionUp    = 1 << 0,
+            EOCPermittedDirectionDown  = 1 << 1,    
+            EOCPermittedDirectionLeft  = 1 << 2,    
+            EOCPermittedDirectionRight = 1 << 3,	
+    };
+
+它的宏定义如下：
+
+	#if (__cplusplus && __cplusplus >= 201103L &&        
+          (__has_extension(cxx_strong_enums) ||         
+           __has_feature(objc_fixed_enum))    
+        ) ||
+        (!__cplusplus && __has_feature(objc_fixed_enum))    
+        #define NS_ENUM(_type, _name)            
+                enum _name : _type _name; enum _name : _type    
+        #if (__cplusplus)        
+                #define NS_OPTIONS(_type, _name)
+                _type _name; enum : _type
+        #else
+                #define NS_OPTIONS(_type, _name)
+                enum _name : _type _name; enum _name : _type	
+                #endif
+    #else
+        #define NS_ENUM(_type, _name) _type _name; enum    	
+        #define NS_OPTIONS(_type, _name) _type _name; enum	
+    #endif
+
+宏定义有多个版本是因为有不同场景。先检查编译器是否支持新的枚举类型。这个检查使用了看起来相当复杂逻辑，但其实就是检查新功能是否是被支持。如果没有新功能，它会使用旧形式定义枚举。
+
+如果，新功能存在，NS_ENUM 类型将如下展开：
+
+    typedef enum EOCConnectionState : NSUInteger EOCConnectionState; 
+    enum EOCConnectionState : NSUInteger {
+         EOCConnectionStateDisconnected, 
+         EOCConnectionStateConnecting,                          
+         EOCConnectionStateConnected,
+    };
+
+NS_OPTIONS 宏根据是否是 C++ 编译器而使用另外不同定义方法。如果不是 C++ 编译器，它被展开成了 NS_ENUM 一样的形式。可是，如果是 C++ 编译器，它会被展开成不同的形式。为什么？因为 C++ 编译器在两个枚举值做位或时表现是不同的。位或如前所示，对于选项类型的枚举是常被用到的。当两个值作位或时，C++ 认为结果值是枚举中定义好的 NSInteger。对于枚举类型，隐式类型转换是不被允许的。为了展示这个，考虑 EOCPermittedDirection 被作为 NS_ENUM 展开会如何：
+
+    typedef enum EOCPermittedDirection : int EOCPermittedDirection;
+    enum EOCPermittedDirection : int {
+        EOCPermittedDirectionUp    = 1 << 0,
+        EOCPermittedDirectionDown  = 1 << 1,
+        EOCPermittedDirectionLeft  = 1 << 2,
+        EOCPermittedDirectionRight = 1 << 3,
+    };
+
+然后，考虑作如下事情：
+
+    EOCPermittedDirection permittedDirections = EOCPermittedDirectionLeft | EOCPermittedDirectionUp;
+
+如果编译器在 C++ 模式中（或可能在 Objective-C++ 中），这将导致如下错误：
+
+    error: cannot initialize a variable of type
+    'EOCPermittedDirection' with an rvalue of type 'int'
+
+你将被要求对位或结果作显式的类型转换，转换为 EOCPermittedDirection。所以 NS_OPTIONS 枚举类型在 C++ 下定义稍稍不同以至于我们无法这么作。由于这个原因，如果你会对多个枚举值作位或运算，你必须总是使用 NS_OPTIONS。如果，你不会这么作，就使用 NS_ENUM。
+
+一个枚举可以被使用在不同的场景下。选项和状态已经在前面展示了；但还有其它场景存在。错误码就是一个很好的例子。代替预定义或者常量，枚举提供了一个定义一组逻辑上相关联的状态码的方法。另外一个例子是风格。例如，如果你有一个 UI 元素可以以不同风格创建，那么枚举类型就是绝佳选择。
+
+另外最后一点是关于在 switch 语句中使用枚举的。有时，你会作如下的事情：
+
+    typedef NS_ENUM(NSUInteger, EOCConnectionState) { 
+        EOCConnectionStateDisconnected, 
+        EOCConnectionStateConnecting, 
+        EOCConnectionStateConnected,
+    };
+
+    switch (_currentState) { 
+       EOCConnectionStateDisconnected:
+           // Handle disconnected state
+           break; 
+       EOCConnectionStateConnecting:
+           // Handle connecting state
+           break; 
+       EOCConnectionStateConnected:
+           // Handle connected state
+           break;
+    }
+
+在 switch 语句中有一个缺省出口。可是，当用户在枚举类型上使用 switch 作状态机时，最好不要有缺省出口。理由是，如果你后面增添了一个状态，编译器将会提供一个警告，被添加的新的状态在 switch 中并没有被处理。如果有缺省出口，编译器将不会警告。这同样适用于使用 NS_ENUM 宏定义的枚举类型。例如，用于定义 UI 元素的风格，你常常会要确定 switch 语句是否处理了所有 UI 风格。
+
+### 要点回顾
 
 * 使用枚举给予状态机的状态，传递给方法的选项或者错误代码的值以可读的名字。
 
-* 如果一个枚举类型定义了传递给方法的可以同时使用的选项，将其值定义为 2 的幂，以使得多个值可以通过位与操作同时使用。
+* 如果一个枚举类型定义了传递给方法的可以同时使用的选项，将其值定义为 2 的幂，以使得多个值可以通过位或操作同时使用。
 
-* 使用 NS_ENUM 和 NS_OPTIONS 宏定义以显式类型定义枚举类型。这么做意味着类型被确保为我们选择的类型，而不是编译器选择的类型。
+* 使用 NS_ENUM 和 NS_OPTIONS 宏定义以显式类型定义的枚举类型。这么做意味着枚举成员的类型被确保为我们选择的类型，而不是编译器选择的类型。
 
 * 在一个处理枚举类型的 switch 语句中不要实现 default case。这将有所帮助。因为，如果你添加了枚举项，编译器将警告 switch 没有处理所有的枚举值。
 
