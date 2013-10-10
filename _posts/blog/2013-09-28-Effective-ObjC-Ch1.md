@@ -504,6 +504,8 @@ C++ 11 标准的到来为枚举类型带来了一些改变。一个变化就是�
 
 ![alt enum](/images/blog/EffectiveObjC/Enum.png "Enum bit layout")
 
+**图 1.2** 各选项的二进制形式，和两个值的位或后的二进制结果 
+
 这广泛用于系统库中。另外一个例子来自于 iOS UI 库 UIKit，使用这个枚举告知系统你的视图所支持的设备朝向。这是通过一个叫 UIInterfaceOrientationMask 枚举类型完成的，你实现一个名为 supportedInterfaceOrientations 的方法，指明所支持的设备朝向：
 
 	- (NSUInteger)supportedInterfaceOrientations {
