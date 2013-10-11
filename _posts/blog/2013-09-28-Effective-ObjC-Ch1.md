@@ -1,6 +1,6 @@
 ---
 layout:    post
-title:     Effective Objective-C Chapter 1
+title:     Effective Objective-C 2.0 Chapter 1
 category:  blog
 description: 了解 Objective-C
 tags: ObjC

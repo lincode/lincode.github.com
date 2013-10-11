@@ -1,12 +1,14 @@
 ---
 layout:    post
-title:     Effective Objective-C Chapter 2
+title:     Effective Objective-C 2.0 Chapter 2
 category:  blog
 description: 对象，消息，和运行时
 tags: ObjC
 ---
 # 第2章 对象，消息，和运行时
+对象在诸如 Objective-C 的面向对象语言中是程序的构件，提供了一个存储搬运数据的方法。消息是对象间相互对话以搬运数据，产生行为的过程。深入理解对象和消息这两个特性是构建高效和可维护代码的关键。
 
+Objective-C 运行时是应用运行时，才提供给语言使用的代码。运行时提供使得在对象间发送消息成为可能，和类的实例如何创建背后的所有逻辑的这样的关键功能。理解这些能使你成为一个更好的开发者。
 
 ## 条目 6：理解属性（Properties）
 
