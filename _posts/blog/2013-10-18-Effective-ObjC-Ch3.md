@@ -1,6 +1,6 @@
 ---
 layout:    post
-title:     Effective Objective-C Chapter 3
+title:     Effective Objective-C 2.0 Chapter 3
 category:  blog
 description: 接口和 API 设计
 tags: ObjC
