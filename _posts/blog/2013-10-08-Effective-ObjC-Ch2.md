@@ -261,7 +261,173 @@ Objective-C 运行时是应用运行时，才提供给语言使用的代码。�
 
 * 有时，在数据被延迟初始化时，你会需要通过属性读取数据。
 
+
 ## 条目 8：理解对象相等
+
+能够比较对象的相等性是非常有用的。可是，使用 == 操作符做比较通常并不是你想要，因为这么做是比较指针本身，而不是比较指针指向的对象。作为代替，你应该使用 NSObject 协议中声明的 isEqual: 方法来检查对象的相等性。通常，两个不同的类的对象总是不相等的。有些对象也提供了特别的相等性检查方法，你就可以使用这些方法，如果你已经知道两个你正在检查的对象是相同的类。例如，如下代码：
+
+	NSString *foo = @"Badger 123";
+	NSString *bar = [NSString stringWithFormat:@"Badger %i", 123];
+	BOOL equalA = (foo == bar); //< equalA = NO
+	BOOL equalB = [foo isEqual:bar]; //< equalB = YES
+	BOOL equalC = [foo isEqualToString:bar]; //< equalC = YES
+
+这里，你可以看到 == 和相等方法之间的不同。NSString 是实现了自己的相等性检查方法的类的例子，方法名为：isEqualToString:。传入的这个方法的对象也必须是一个 NSString 对象；否则，结果将会是不确定的。这个方法被设计为快于调用 isEqual:。isEqual 必须做一些额外的步骤，因为它不知道被比较的对象的是什么类。
+
+在 NSObject 协议中有两个关于相等性检查的核心方法，它们是：
+
+	- (BOOL)isEqual:(id)object;
+	- (NSUInteger)hash;
+
+这两个方法在 NSObject 类中缺省实现是，如果它们的指针值完全相等，两个对象才相等。为了了解如何为你自己的类重写，先理解协议是很重要的。任何两个对象使用 isEqual: 方法被确定相等，都必须从 hash 方法中返回相同的值。可是，两个从 hash 方法返回相同值的对象并不必须是通过 isEqual: 方法判断为相等的。
+
+例如，考虑下面的类：
+
+	@interface EOCPerson : NSObject
+	@property (nonatomic, copy) NSString *firstName;
+	@property (nonatomic, copy) NSString *lastName;
+	@property (nonatomic, assign) NSUInteger age;
+	@end
+
+如果两个 EOCPerson 对象所有的变量都相等，则两个对象相等。所以 isEqual: 方法看起来应该像这样：
+
+	- (BOOL)isEqual:(id)object {
+    	if (self == object) return YES;
+	    if ([self class] != [object class]) return NO;
+	
+    	EOCPerson *otherPerson = (EOCPerson*)object;
+    	if (![_firstName isEqualToString:otherPerson.firstName])
+        	return NO;
+	    if (![_lastName isEqualToString:otherPerson.lastName])
+    	    return NO;
+    	if (_age != otherPerson.age)
+        	return NO;
+	    return YES;
+	}
+	
+首先，object 被检查指向它们的指针等于 self。如果指针相等，对象必然是相等的，因为它们是同一个对象！然后，对比两个对象的类。如果类不相同，这两个对象不能相等。毕竟，一个 EOCPerson 不能对于一个 EOCDog。当然，你可能让一个 EOCPerson 的实例挡雨一个它的子类的实例；例如，EOCSmithPerson。这展示了一个继承层次的相等性中的共同问题。当你实现你的 isEqual: 方法时，你必须考虑这一点。最后，每个属性被检查相等性。如果它们中有任何一个不相等，则两个对象不想等；否者，它们就是相等的。
+
+还有 hash 方法。回忆一下协议，相等对象必须返回同样的 hash，但是拥有相同 hash 的对象并不必须要相等。因此，如果你重写了 isEqual:，重写 hash 也是必要的。一个完美的可接受的 hash 方法如下：
+
+	- (NSUInteger)hash {
+    	return 1337;
+	}
+
+可是，如果你将这些对象放入容器中，这将会导致性能问题，因为 hash 被用于容器所用到的哈希表的索引。一个 set 的实现可能会根据哈希值将对象插入到不同的数组中。然后，当一个对象被加入到 set 时，符合它的哈希值的数组被遍历，以观察数组中是否有对象和其相等。如果，有相等的对象，则说明对象已经在 set 中。因此，如果你为每个对象返回相同的哈希值，钥匙你在 set 中添加1000000个对象，每次再添加就需要扫描这1000000个对象。
+
+另外一中 hash 方法的实现可能为：
+
+	- (NSUInteger)hash {
+    	NSString *stringToHash =
+        	[NSString stringWithFormat:@"%@:%@:%i",
+        	    _firstName, _lastName, _age];
+    	return [stringToHash hash];
+	}
+
+这一次， NSString 的 hash 方法的算法被用于返回一个新创建的字符串的 hash。这么做符合协议，因为两个 相等的 EOCPerson 对象将总是返回相同的 hash。可是，这种方法的不足在于它比单单返回一个值要慢很多，因为你有创建字符串的开销。在向一个集合加入对象时，这会引起性能问题，因为向集合加入对象时，需要计算它的 hash。
+
+第三个创建 hash 的最终方法如下：
+
+	- (NSUInteger)hash {
+    	NSUInteger firstNameHash = [_firstName hash];
+    	NSUInteger lastNameHash = [_lastName hash];
+    	NSUInteger ageHash = _age;
+    	return firstNameHash ^ lastNameHash ^ ageHash;
+	}
+
+这个方法在效率和至少取得一定范围内的 hash 之间取得了平衡。当然，使用这个算法，这会有一些冲突，但是至少 hash 函数的返回值不是唯一的。冲突频率和 hash 方法的计算密度之间平衡是一件你必须实验，以发现适合你的对象的算法。
+
+### 类的特殊相等方法
+除了之前描述的 NSString，其它提供了自有的相等方法的类包括 NSArray（isEqualToArray:）和 NSDictionary （isEqualToDictionary:），它们在被比较的对象不是数组或者字典时，分别都会抛出异常。Objective-C 并不在编译时强制类型检查，所以你可能很容易偶然传入错误类型的对象。因此，你需要确认你传入的对象确实是正确的类型。
+
+你可能决定创建你自己的相等方法，如果相等性可能是经常检查的话；省略类型检查而获得得额外得速度是显著的。另外一个提供特别方法的理由是纯粹表面化的，你认为这样看起来更稳易读，就如同 NSString 的 isEqualToString: 方法的部分目的一样。使用这个方法的代码更易读，因为你不必费心考虑被比较的两个对象的类型。
+
+如果，你创建了一个特殊方法，你必须重写 isEqual: 方法，并检查两个对象的类型。如果不是相同类型，通常实践是传给父类的实现。例如，类 EOCPerson 可以如下实现：
+
+	- (BOOL)isEqualToPerson:(EOCPerson*)otherPerson {
+    	if (self == object) return YES;
+
+    	if (![_firstName isEqualToString:otherPerson.firstName])
+        	return NO;
+    	if (![_lastName isEqualToString:otherPerson.lastName])
+    	    return NO;
+	    if (_age != otherPerson.age)
+        	return NO;
+    	return YES;
+	}
+
+	- (BOOL)isEqual:(id)object {
+    	if ([self class] == [object class]) {
+    	    return [self isEqualToPerson:(EOCPerson*)object];
+	    } else {
+        	return [super isEqual:object];
+    	}
+	}
+
+### 深度相等 VS 浅度相等
+当你创建一个相等方法时，你需要决定是否检查整个对象或者仅仅检查几个变量。NSArray 检查两个数组是否包含相同数量的对象，如果是，遍历它们对每个成员调用 isEqual: 方法。如果所有的对象都相等，这两个数组就确实相等，这叫深度相等。
+
+有时，可是，如果你知道几个数据可以决定相等性，那么不为相等性检查所有数据是可行的。
+
+例如，使用 EOCPerson 类，如果实例来源于一个数据库，它们可能有另外一个附加的以数据库的主键作为唯一标示的属性：
+
+	@property NSUInteger identifier;
+
+在这样一个场景中，你可能决定只检查标示是否匹配。特别是属性被声明为外部只读，这样你可以确定两个有相同标示的对象，它们确实代表相同的对象，它们是相等。由于来源于相同的数据源，当你可以断言标示匹配，剩余的数据也匹配时，这就不用检查 EOCPerson 对象包含的每一位数据。
+
+是否在相等方法中检查所有的变量完全取决于各个对象。只有你能知道你的对象实例相等到底意味着什么。
+
+### 容器中可变类的相等性
+一个需要考虑重要场景是可变对象被放入容器中。一旦你向集合添加对象，它的哈希值不应该变化。之前，我解释过对象更具它们的哈希值被分入不同的区域。如果它们的哈希值在被分区时变化了，对象就将在错误的区中。为了解决这个问题，你可以保证只要对象在集合中，它们的哈希值不却取决于对象的可变部分，或者简单地就不可变。在条目 18
+中，我会解释为什么你应该让对象不可变。这是那个理由的一个绝好例子。
+
+你可以看到测试 NSMutableSet 和 NSMutableArray 行为中的问题。从将一个对象加入 set 开始：
+
+	NSMutableSet *set = [NSMutableSet new];
+
+	NSMutableArray *arrayA = [@[@1, @2] mutableCopy];
+	[set addObject:arrayA];
+	NSLog(@"set = %@", set);
+
+Set 包含一个对象：两个对象的数组。现在添加一个包含有相同顺序的相同对象的数组，这样新的数组和已经存在于 set 中的数组相等：
+
+	NSMutableArray *arrayB = [@[@1, @2] mutableCopy];
+	[set addObject:arrayB];
+	NSLog(@"set = %@", set);
+	// Output: set = {((1,2))}
+
+Set 仍然包含一个对象，因为要添加的对象等于已经存在于 set 中的对象。现在我们向 set 中添加一个和已在 set 中的数组不相等的数组：
+
+	NSMutableArray *arrayC = [@[@1] mutableCopy];
+	[set addObject:arrayC];
+	NSLog(@"set = %@", set);
+	// Output: set = {((1),(1,2))}
+
+如期望的，set 现在包含两个数组：原来的那个和新添加的，因为 arrayC 不等于已存在于 set 中的数组。最终，我改变 arrayC 为等于另一个存在于 set 的数组：
+
+	[arrayC addObject:@2];
+	NSLog(@"set = %@", set);
+	// Output: set = {((1,2),(1,2))}
+
+嗯，哦，亲爱的，现在 set 中的两个数组彼此相等了！一个 set 不允许这种情况，但是它已不能维持它的语义了，因为你已改变了已存在于 set 中的一个对象。更为尴尬的时如果这个 set 之后又被拷贝了：
+
+	NSSet *setB = [set copy];
+	NSLog(@"setB = %@", setB);
+	// Output: setB = {((1,2))}
+
+拷贝出来的 set 只有一个对象在里面，就如同 set 被以空 set 创建，再一个一个往里添加被拷贝 set 中的对象。这可能是你期望的，也可能不是。你可能需要逐字拷贝原有对象，即使又错误存在。或者，你可能希望它如同它之前做得那样。两者都将是有效的复制算法，进一步说明了这一点，集合存在错误时，一切在其上的操作都成为了赌博。
+
+这个故事的寓意是当你改变了集合中的数据，那就要对将发生的事情保持警惕。这不是说你不应该这么做，而是你应该潜在的问题和相应的代码保持警惕。
+
+### 要点回顾
+* 为你将要做相等性检查的对象提供 isEqual: 和 hash 方法。
+
+* 相等对象必须有相同的哈希值，但是有相同哈希的对象并必须要相等。
+
+* 确定哪些属性是测试相等性所必须的，而不是简单粗暴地检查所有属性。
+
+* 编写的 hash 方法必须快速，同时提供一个合理的低冲突概率。
+
 
 ## 条目 9：使用类簇模式隐藏实现细节
 
