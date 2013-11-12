@@ -494,20 +494,20 @@ Set 仍然包含一个对象，因为要添加的对象等于已经存在于 set
                    	     cancelButtonTitle:@"Cancel"
                    	     otherButtonTitles:@"Continue", nil];
 
-      void (^block)(NSInteger) = ^(NSInteger buttonIndex){
-        if (buttonIndex == 0) {
-            [self doCancel];
-        } else {
-            [self doContinue];
-        }
-    };
+      	void (^block)(NSInteger) = ^(NSInteger buttonIndex){
+        	if (buttonIndex == 0) {
+            	[self doCancel];
+	        } else {
+    	        [self doContinue];
+        	}
+	    };
 
-     objc_setAssociatedObject(alert,
-                               EOCMyAlertViewKey,
-                               block,
-                               OBJC_ASSOCIATION_COPY);
+     	objc_setAssociatedObject(alert,
+        	                     EOCMyAlertViewKey,
+            	                 block,
+            	                 OBJC_ASSOCIATION_COPY);
 
-     [alert show];
+	    [alert show];
 	}
 
 	// UIAlertViewDelegate protocol method
