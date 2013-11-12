@@ -431,7 +431,102 @@ Set 仍然包含一个对象，因为要添加的对象等于已经存在于 set
 
 ## 条目 9：使用类簇模式隐藏实现细节
 
-## 条目 10：使用相关对象法将客户数据挂在已有类上
+## 条目 10：通过关联对象（Associated Object）将用户数据挂载在已有类上
+有时，你要将信息与对象关联。正常情况下，你会通过继承对象的类，在子类中添加信息。可是，你并不总能这么做，因为为你创建类的实例的方法并不一定支持创建你的类的实例。这就是强大的 Objective-C 的一个名为关联（Associated Object）的功能派上用场的地方。
+
+对象被与其它对象关联起来，通过键标示这些相关对象。它们也可以被指定不同的存储策略，使得被存储的值应用相应的内存管理语义。存储策略由枚举类型 objc_AssociationPolicy 定义，它包含的值如表 2.1 所示一一对应了 @property 的参数（见条目 6 以获取更多关于属性的信息）。
+
+![alt Associated-Object](/images/blog/EffectiveObjC/Associated-Object.jpg "Stack Heap")
+
+**表 2.1**对象关联类型
+
+关联的管理使用如下方法实施：
+
+* 以给定的键和存储策略建立一个 value 的对象关联。
+
+	void objc_setAssociatedObject(id object, void *key, id value, objc_AssociationPolicy policy)
+
+* 返回 object 上对应于给定键的关联。
+* 
+	id objc_getAssociatedObject(id object, void *key)
+
+* 去除 object 上所有的关联。
+
+	void objc_removeAssociatedObjects(id object)
+
+访问关联对象功能上类似于想像 object 是一个 NSDictionary，并调用 [object setObject:value forKey:key] 和 [object objectForKey:key]。但一个重要的不同要注意， 键被完全当作不透明的指针。由于在字典中，如键的 isEqual: 方法返回 YES，则键相等，而关联对象的键必须是完全相同的指针，关联对象才相等。鉴于这个原因，通常使用静态全局变量作为广联对象的键。
+
+### 一个使用关联对象的例子
+在 iOS 开发中，类 UIView 是很常用的，它提供了一个向用户显示警告框的标准视图。存在一个委托协议用于处理用户点击按钮关闭它的事件；可是，使用委托分割了创建警告框和处理点击的代码。着使得代码读起来有点麻烦，因为代码被分割在两个地方。这有一个通常如何使用 UIAlertView 的例子：
+
+	- (void)askUserAQuestion {
+    	UIAlertView *alert = [[UIAlertView alloc]
+        	                     initWithTitle:@"Question"
+            	                   message:@"What do you want to do?"
+                   	              delegate:self
+                	        cancelButtonTitle:@"Cancel"
+                   	     otherButtonTitles:@"Continue", nil];
+	      [alert show];
+	}
+
+	// UIAlertViewDelegate protocol method
+	- (void)alertView:(UIAlertView *)alertView
+    	    clickedButtonAtIndex:(NSInteger)buttonIndex
+	{
+    	if (buttonIndex == 0) {
+        	[self doCancel];
+	    } else {
+    	    [self doContinue];
+	    }
+	}
+
+如果你试图在同一个类中展示多余一个警告框，这个模式甚至会更复杂，因为你必须检查传入 delegate 方法的 alertView 参数，并根据不同 alertView 切换。如果当每个按钮被点击的逻辑在警告框被创建时就能被确定，那就会简单很多。解决方法是在创建警告框时，为它设置一个块（block），然后在 delegate 方法运行时读出这个块。它实现起来如下：
+
+	#import <objc/runtime.h>
+
+	static void *EOCMyAlertViewKey = "EOCMyAlertViewKey";
+
+	- (void)askUserAQuestion {
+    	UIAlertView *alert = [[UIAlertView alloc]
+        	                     initWithTitle:@"Question"
+            	                   message:@"What do you want to do?"
+                	                  delegate:self
+                   	     cancelButtonTitle:@"Cancel"
+                   	     otherButtonTitles:@"Continue", nil];
+
+      void (^block)(NSInteger) = ^(NSInteger buttonIndex){
+        if (buttonIndex == 0) {
+            [self doCancel];
+        } else {
+            [self doContinue];
+        }
+    };
+
+     objc_setAssociatedObject(alert,
+                               EOCMyAlertViewKey,
+                               block,
+                               OBJC_ASSOCIATION_COPY);
+
+     [alert show];
+	}
+
+	// UIAlertViewDelegate protocol method
+	- (void)alertView:(UIAlertView*)alertView
+    	    clickedButtonAtIndex:(NSInteger)buttonIndex
+	{
+    	void (^block)(NSInteger) =
+        	objc_getAssociatedObject(alertView, EOCMyAlertViewKey);
+	    block(buttonIndex);
+	}
+
+通过这个方法，创建警告框的代码和处理结果的代码都在同一个地方，这使得代码比之前更可读一些，因为你不必在两块代码之间摆动以理解为何警告框试图被使用了。但你仍然要对这个方法小心翼翼，因为块的使用中很容易产生循环引用。见条目 40 以获得更多关于这个问题的信息。
+
+如你所见，这个方法是很强大的，当时它只应该在其它方法都不凑效时被使用。广泛使用这个方法可能会很快失控，导致调试困难。因为在关联对象之间不存在正式关系定义，循环引用变得很难理解，内存管理语义时在关联时才被定义而不是在定义接口时被定义。所以使用这个方法时要小心谨慎，不要只是因为你能使用就是去使用它。一个完成 UIAlertView 的替代方法时继承它，并给它添加一个用于存储块（block）的属性。如果 alert 视图被使用不只一次，我更建议使用这个方法，而不是关联对象。
+
+### 要点回顾
+* 关联对象提供了一种将两个对象联系在一起的方法。
+* 关联对象的内存管理语义可以被定义为类似拥有或不拥有关系。
+* 关联对象只应该在其它方法都不能用时才被使用，因为它们很容易导致难以调试的 bug。
 
 ## 条目 11：理解 objc_msgSend 的角色
 
