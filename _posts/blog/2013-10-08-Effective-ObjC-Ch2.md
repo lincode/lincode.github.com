@@ -436,7 +436,7 @@ Set 仍然包含一个对象，因为要添加的对象等于已经存在于 set
 
 对象被与其它对象关联起来，通过键标示这些相关对象。它们也可以被指定不同的存储策略，使得被存储的值应用相应的内存管理语义。存储策略由枚举类型 objc_AssociationPolicy 定义，它包含的值如表 2.1 所示一一对应了 @property 的参数（见条目 6 以获取更多关于属性的信息）。
 
-![alt Associated-Object](/images/blog/EffectiveObjC/Associated-Object.jpg "Stack Heap")
+![alt Associated-Object](/images/blog/EffectiveObjC/Associated-Object.png "Associated Object")
 
 **表 2.1**对象关联类型
 
@@ -447,7 +447,7 @@ Set 仍然包含一个对象，因为要添加的对象等于已经存在于 set
 	void objc_setAssociatedObject(id object, void *key, id value, objc_AssociationPolicy policy)
 
 * 返回 object 上对应于给定键的关联。
-* 
+
 	id objc_getAssociatedObject(id object, void *key)
 
 * 去除 object 上所有的关联。
