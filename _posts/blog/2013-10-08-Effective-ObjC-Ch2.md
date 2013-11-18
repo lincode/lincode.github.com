@@ -529,6 +529,96 @@ Set 仍然包含一个对象，因为要添加的对象等于已经存在于 set
 * 关联对象只应该在其它方法都不能用时才被使用，因为它们很容易导致难以调试的 bug。
 
 ## 条目 11：理解 objc_msgSend 的角色
+在 Objective－C 中，调用对象的方法是最常见事情之一。在 Objective-C 术语中，这被称为发送消息。消息有名字，或成为选择器（selector），有参数，可能会有返回值。
+
+因为 Objective-C 是 C 的超集，所以从理解 C 中函数调用开始会是个好注意。C 的函数调用是静态绑定的，这意味着在编译时函数的调用就被知晓了。例如，考虑如下例子：
+
+	#import <stdio.h>
+
+	void printHello() {
+		printf("Hello, world!\n");
+   	}
+   	
+   void printGoodbye() {
+    	printf("Goodbye, world!\n");
+	}
+
+	void doTheThing(int type) {
+    	if (type == 0) {
+        	printHello();
+	    } else {
+    	    printGoodbye();
+	    }
+    	return 0;
+	}
+
+忽略内联，当这段代码被编译时，printHello 和 printGoodbye 是被知道的，编译器可发送指令直接调用函数。函数的地址被高效地硬编码入指令。现在考虑一下这么写的代码：
+
+	#import <stdio.h>
+
+	void printHello() {
+   		printf("Hello, world!\n");
+	}
+	void printGoodbye() {
+    	printf("Goodbye, world!\n");
+	}
+
+	void doTheThing(int type) {
+    	void (*fnc)();
+    	if (type == 0) {
+        	fnc = printHello;
+	    } else {
+    	    fnc = printGoodbye;
+	    }
+    	fnc();
+    	return 0;
+	}
+
+这里，用到了动态绑定，因为被调用的函数到运行时才知道。编译器发出的指令将不同与第一个例子中，在 if 和 else 分支中都有函数调用。在第二个例子中，只有一个单一的函数调用，但却有读取被调用的那个函数的地址的消耗，地址并没有被硬编码。
+
+在 Objective-C 中动态绑定是这样机制，当消息被传送给一个对象时方法被调用。所有方法其实底层都是纯 C 函数，但是消息到来时哪一个函数被调用完全决定于运行时，并且甚至可以在应用的整个运行过程中被修改，这使得 Objective-C 成为纯粹动态语言。向对象发送消息看起来如下：
+
+	id returnValue = [someObject messageName:parameter];
+
+在这个例子中，someObject 被作为接收者，messageName 是选择器。选择器和参数合在一起被成为消息。编译器看到这条消息时，它将消息转为标准 C 函数，这个函数是消息发送的核心函数, objc_msgSend,它有如下原型：
+
+	void objc_msgSend(id self, SEL cmd, ...)
+
+这是一个可变参数函数，可以有两个或更多参数。第一个参数是接收者，第二个参数是选择器（SEL 是选择器的类型），剩余的参数为消息参数，按消息参数的顺序。选择器是被视为方法的名字。选择器这个词常常页被用在方法这个词试用的地方。前面的例子中的消息可以转化为如下：
+
+	id returnValue = objc_msgSend(someObject,
+                      	          @selector(messageName:),
+                                 parameter);
+
+objc_msgSend 函数能否调用正确的方法，取决于接受者的类型和选择器。为了能够正确调用，行数遍历接收者的类所实现的方法列表，如果找到一个方法匹配选择器的名字，就跳往这个方法实现。如果没有发现匹配的，则跳往继承结构向上层层追溯知道找到匹配的方法。如果没有匹配的方法被找到，message forwarding 接入。为了获取更多解释，查看条目 12。
+
+看起来无论何时方法被调用，都要做很的的查找工作。幸运的是，objc_msgSend 在一个快速图中缓存了结果，每个类都有对应的图，这样对于相同类以后的消息，选择器会很快被执行。即使这个快速方法比静态绑定函数调用要慢，但是一旦选择器被缓存了，这个差距不会太大；实际上，在应用中消息分发并不是瓶颈。如果它是瓶颈，你可以写一个 C 函数，通过 Objective-C 对象的各种状态，调用它。
+
+前面的描述只是针对特定的消息。Objective-C 运行时环境提供了更多的函数用于处理一些特定的边缘情况：
+
+* objc_msgSend_stret
+  发送返回结构体的消息。objc_msgSend 这个函数只能处理返回可存入 CPU 寄存器的特定类型的消息。如果返回类型不符合，例如，如果返回一个结构体，另一个函数江北调用以执行分发。在这个例子中，另一个函数 objc_msgSend_stret 被调用，通过栈分配变量来处理返回结构体的情况。
+  
+* objc_msgSend_fpret
+  发送返回浮点数的消息。在函数调用中处理浮点数寄存器是需要一些特别的结构的，这意味着标准的 objc_msgSend 不够好。objc_msgSend_fpret 这个函数存在就是为了处理例如 x86 这样的有些不同的构架突然出现。
+
+* objc_msgSendSuper
+  向父类发送消息，例如 [super message:parameter]。这也有 objc_msgSend_stret 和 objc_msgSend_fpret 向父类发送消息的对等函数：objc_msgSendSuper_stret 和 objc_msgSendSuper_fpret。
+
+我之前提过 objc_msgSend 这一系列函数一旦找到正确的方法实现便会跳往这个实现。每个 Objective-C 对象的方法可以被视为一个简单的 C 函数，它的原型形式如下：
+
+	<return_type> Class_selector(id self, SEL _cmd, ...)
+
+函数的名字并不真正如此，但是这是为了展示这一点：它是类和选择器的联合。这样的函数指针被存储在每个类的表中，以键对应选择器名字。这就是 objc_msgSend 系列方法查找实现所要跳入的地方。注意到这个原很型类似于 objec_msgSend 函数本身。这不是巧合。这是的跳入相应的函数更简单，也可更好试用尾部的调用优化。
+
+尾部调用优化发生在一个函数最后一件事为调用另外一个函数时。编译器不再推入一个新的栈帧，而是发出跳到下一个函数的指令。这只能在一个函数最后做的事情是调用另外一个函数，并且不需要用到返回值时。对于 objc_msgSend 使用这项优化是很重要的，因为没有它，栈轨迹显示在每个 Objective-C 函数前都会有 objc_msgSend。栈溢出将过早发生。
+
+实际上，Objective-C 中，你无需担忧所有的这些，但是理解这些隐藏的基础性的知识是有利的。如果你理解消息发送时发生了什么，你便能体会你的代码是怎么执行的，并了解为何在调试时你总会在回溯中看到 objc_msgSend。
+
+### 要点回顾
+* 一条消息由接收者，选择器，参数构成。调用消息是在对象中调用方法的同义词。
+* 当被调用时，所有消息将通过动态消息分发系统，这样消息的实现部分会被查找到并被运行。
+
 
 ## 条目 12：理解消息发送
 
