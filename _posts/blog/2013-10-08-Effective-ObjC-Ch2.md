@@ -590,7 +590,7 @@ Set 仍然包含一个对象，因为要添加的对象等于已经存在于 set
                       	          @selector(messageName:),
                                  parameter);
 
-objc_msgSend 函数能否调用正确的方法，取决于接受者的类型和选择器。为了能够正确调用，行数遍历接收者的类所实现的方法列表，如果找到一个方法匹配选择器的名字，就跳往这个方法实现。如果没有发现匹配的，则跳往继承结构向上层层追溯知道找到匹配的方法。如果没有匹配的方法被找到，message forwarding 接入。为了获取更多解释，查看条目 12。
+objc_msgSend 函数能否调用正确的方法，取决于接受者的类型和选择器。为了能够正确调用，行数遍历接收者的类所实现的方法列表，如果找到一个方法匹配选择器的名字，就跳往这个方法实现。如果没有发现匹配的，则跳往继承结构向上层层追溯知道找到匹配的方法。如果没有匹配的方法被找到，消息转发接入。为了获取更多解释，查看条目 12。
 
 看起来无论何时方法被调用，都要做很的的查找工作。幸运的是，objc_msgSend 在一个快速图中缓存了结果，每个类都有对应的图，这样对于相同类以后的消息，选择器会很快被执行。即使这个快速方法比静态绑定函数调用要慢，但是一旦选择器被缓存了，这个差距不会太大；实际上，在应用中消息分发并不是瓶颈。如果它是瓶颈，你可以写一个 C 函数，通过 Objective-C 对象的各种状态，调用它。
 
@@ -620,7 +620,204 @@ objc_msgSend 函数能否调用正确的方法，取决于接受者的类型和�
 * 当被调用时，所有消息将通过动态消息分发系统，这样消息的实现部分会被查找到并被运行。
 
 
-## 条目 12：理解消息发送
+## 条目 12：理解消息转发
+
+条目 11 解释了理解消息如何被发向对象是重要的。条目 12 将探索了解当一条消息被发向一个无法理解它的对象时发生了什么为何是重要的。
+
+一个类只能理解那些它通过编码实现了方法的消息。但是向一个无法理解此消息的对象发送消息，不是一个编译时错误，因为方法是再运行时被挂到类上的，所以编译器无法知道一个方法实现运行时是否会存在。当对象收到一个它无法理解的方法时，它会进行消息转发。消息转被设计出来是为了让开发者可以告知消息如何处理未知消息。
+
+即使没有意识到消息转发存在，你也很可能已经遇到了被消息转发转发的消息了。你遇到如下面控制台中显示的消息，这都是因为你向一个对象发送了它无法理解的消息，而被转发到缺省的 NSObject 实现。
+
+	-[__NSCFNumber lowercaseString]: unrecognized selector sent to instance 0x87
+	*** Terminating app due to uncaught exception 'NSInvalidArgumentException', 
+	reason: '-[__NSCFNumber lowercaseString]: unrecognized selector sent to instance 0x87'
+
+这是一个被 NSObject 的 doesNotRecognizeSelector 方法抛出的异常，告知你消息的接收器是 __NSCFNumber 类型它无法理解选择器 lowercaseString。在这个例子中这并不让你奇怪，因为 NSNumber（_NSCFNumber 是在 toll－free bridging 中使用的内部类，当你申请了一个 NSNumber，内部会创建 _NSCFNumber,见 条目 49）。在这个例子中，转发路径终结于应用崩溃，但是你在你自己的类的转发路径中，有勾子可以使你可以执行任何你想要的逻辑，而代替崩溃。
+
+转发路径被分叉为两条路。第一条给接收器所属的类一个机会可以动态的为未知选择器添加一个方法。这叫做动态方法解析。第二条是全转发机制。如果运行时走了这条路，说明接收器已无机会回应某个选择器。所以，让接收器自己处理无法处理的方法调用，它会分两步来做。首先，它询问是否有其它对象应该替代它接收这个消息。如果有，运行时转发消息，所有事情都如常运行。如果没有替代的接收器，全转发机制将产生作用， NSInvocation 对象包装了所有有关细节：消息现在无法被处理，再给接收器最后一个处理的机会。
+
+### 动态方法解析
+
+当方法被传给一个无法理解它的对象时，第一个被调用的方法是一个类方法：
+	
+	+ (BOOL)resolveInstanceMethod:(SEL)selector
+
+这个方法的传入参数为对象找不到的那个选择器，返回一个布尔变量以说明是否有一个实例方法被添加在这个类，使其可以处理这个选择器。因此，类被给予了的第二个机会通过转发机制在运行之前，添加一个实现。一个类似的方法，名为 resolveClassMethod：，在未被类实现的方法是类方法而不是实例方法时会被调用。
+
+使用此方案要求的方法实现已经存在，只待动态的插入类。这种方法通常使用 @dynamic 属性实现（见条目 6），如 CoreData 中访问 NSManagedObjects 的属性时发生的那样，因为被要求实现的方法在编译时是可以知的。
+
+例如，一个为了使用 @dynamic 属性而实现的 resolveInstanceMethod: 看起来可能如下：
+
+	id autoDictionaryGetter(id self, SEL _cmd);
+	void autoDictionarySetter(id self, SEL _cmd, id value);
+
+	+ (BOOL)resolveInstanceMethod:(SEL)selector {
+    	NSString *selectorString = NSStringFromSelector(selector);
+    	if ( /* selector is from a @dynamic property */ ) {
+        	if ([selectorString hasPrefix:@"set"]) {
+            	class_addMethod(self,
+                	            selector,
+                   		        (IMP)autoDictionarySetter,
+                   	         	"v@:@");
+	        } else {
+    	        class_addMethod(self,
+        	                    selector,
+            	                (IMP)autoDictionaryGetter,
+	              	            "@@:");
+	        }
+        	return YES;
+    	}
+	    return [super resolveInstanceMethod:selector];
+	}
+
+选择器被以字符串类型获取，之后检查它是否是一个赋值器。如果它以 set 为前缀，便被认为是一个赋值器；否则，它被认为是一个取值器。在每种情况下，一个方法都被添加到类中，为给定的选择器指定一个纯 C 函数的实现。在这个 C 函数中，将有代码可以执行将可以被类使用的任何一种数据结构存入属性数据。例如，在 CoreData 的例子中，这些方法将和数据库后端沟通以根据需要提取或则更新数据。
+
+### 替代接收器
+第二个处理未知选择器的尝试是询问接收器是否有替代接受器可以处理消息。处理这个的方法是：
+
+	- (id)forwardingTargetForSelector:(SEL)selector
+
+未知选择器被传入，接收器被期望放回可做代替的对象，如果无法找到替代者则返回 nil。这个方法可以被用于通过组合也可提供类似多继承的某些便利。一个对象可以在内部拥有这个方法提供的一组其它对象，用于处理选择器，就好像它自己能够处理一样。
+
+注意这种转发方法不能操作消息。如果消息需要在被发送至替代者之前被修改，则需使用到全转发机制。
+
+### 全转发机制
+如果转发算法已经到达了这一步拉了，那应用全转发机制便是唯一可以做的事情了。全转发通过创建一个 NSInvocation 对象开始，该对象包装所有的关于待处理消息的细节。这个对象包含了选择器，目标（target），和参数（argument）。一个 NSInvocation 对象可以被调用，这将引起消息分发系统进入工作，并将消息风发给它的目标。
+
+被调用以尝试转发的方法是：
+
+- (void)forwardInvocation:(NSInvocation*)invocation
+
+一个简单实现将改变 invocation 的目标，并调用 invocation。这会等价于使用替代接收器方法，像这样的简单实现很少被用到。一个更有用的实现是在调用消息之前，通过某种方法改变消息，例如添加另外一个参数或者改变选择器。
+
+这个方法的一个实现应该总是调用它的父类的实现以处理它无法处理的消息。这意味着继承结构中所有的父类都被给予一次处理这个调用的机会，NSObject 的实现将被调用。这将会导致 doesNotRecognizedSelector: 被调用以抛出一个无法处理选择器的异常。
+
+### 全图
+转发被处理过程可以被如图 2.2 的流程图所描述。
+
+![alt Message-Forwarding](/images/blog/EffectiveObjC/Message-Forwarding.png "Message-Forwarding")
+
+每一步，接收器都有机会处理消息。每一步都比它之前的一步消耗更大。最佳场景是方法在第一步就被解析了，因为被解析的方法最终会被运行时缓存，以至于第一次之后在相同类的实例上调用相同选择器的转发无需深入。在第二步，转发一条消息给另外一个接收器是第三步在替代接收器可被找到的情况下的一种简单优化。在这种情况下，调用唯一需要改变的事情是目标（target），相对于最后一步中一个完整的 NSInvocation 需要被创建和处理，改变目标是非常简单的。
+
+### 动态方法解析的完整实例
+
+为了展示转发的作用，下面的例子显示了使用动态方法解析提供一个 @dynamic 属性。考虑到一个对象。考虑一个对象允许你储存任何对象，就像一个字典，但是是通过属性访问。这个类的实现是你可以添加一个属性定义，并声明为 @dynamic，类将魔法般处理值的存储和获取。这看起来很棒，不是吗？
+
+类的接口如此：
+	
+	＃import <Foundation/Foundation.h>
+	
+	@interface EOCAutoDictionary : NSObject
+	@property (nonatomic, strong) NSString *string;
+	@property (nonatomic, strong) NSNumber *number;
+	@property (nonatomic, strong) NSData *date;
+	@property (nonatomic, strong) id opaqueObject;
+	@end
+	
+对这个例子来说，有何种属性并不重要。实际上，已展示的各种类型仅仅意在表现这个功能的强大。每个属性的值在内部实际上还是存储在字典中，所以类的实现的开头会如下，包括以 @dynamic 声明属性，以使得实例变量和访问器不会被自动生成：
+
+	#import "EOCAutoDictionary.h"
+	#import <objc/runtime.h>
+	
+	@interface EOCAutoDictionary ()
+	@porperty (nonatomic, strong) NSMutableDictionary *backingStore;
+	@end
+	
+	@implementation EOCAutoDictionary
+	@dynmic string, number, date, opaqueObject;
+	
+	- (id)init {
+		if ((self = [super init]) {
+			_backStore = [NSMutableDictionary new];
+		}
+		return self;
+	}
+	
+然后到了有趣的部分了： resolveInstanceMethod: 实现：
+
+	+ (BOOL)resolveInstanceMethod:(SEL)selector {
+    	NSString *selectorString = NSStringFromSelector(selector);
+    	if ( /* selector is from a @dynamic property */ ) {
+        	if ([selectorString hasPrefix:@"set"]) {
+            	class_addMethod(self,
+                	            selector,
+                   		        (IMP)autoDictionarySetter,
+                   	         	"v@:@");
+	        } else {
+    	        class_addMethod(self,
+        	                    selector,
+            	                (IMP)autoDictionaryGetter,
+	              	            "@@:");
+	        }
+        	return YES;
+    	}
+	    return [super resolveInstanceMethod:selector];
+	}
+	
+	@end
+	
+第一次遇到 EOCAutoDictionary 的一个属性调用时，运行时会找不到对应的选择器，因为它们没有被直接实现，也没有被自动生成。例如，如果 opaqueObject 属性被赋值，上面的方法将被以选择器 setOpaqueObject: 为参数调用。类似地，如果属性被读取，它将被以选择器 opaqueObject: 为参数调用。方法通过检查是否有 set 前缀，侦测 set 和 get 选择器之间地不同。在每种情况下，一个方法被添加到类中，以为给定的选择器指定一个函数调用，这里按情况选择  autoDictionarySetter 或者 autoDictionaryGetter。这使用到了运行时方法 class_addMethod，它为选择器在类中，动态添加一个方法，该方法以函数指针给出。class_addMethod 函数的最后一个参数是实现的编码类型。编码类型由字符串表示返回类型，以及随后的函数的参数。
+
+取值器的实现如下：
+
+	id autoDictionaryGetter(id self, SEL _cmd) {
+		// Get the backing store form the object
+		EOCAutoDictionary *typedSelf = (EOCAutoDictionary *)self;
+		NSMutableDictionary *backingStore = typedSelf.backingStore;
+		
+		// The key is simply the selector name
+		NSString *key = NSStringFromSelector(_cmd);
+		
+		// Return the Value
+		return [backingStore objectForKey:Key];
+	}
+	
+最后，赋值器的实现如下：
+
+	void autoDictionarySetter(id self, SEL _cmd, id value) {
+		// Get the backingStore from the object
+		EOCAutoDictionary *typedSelf = (EOCAutoDictionary *)self;
+		NSMutableDictionary *backingStore = typedSelf.backingStore;
+		
+		/** The selector will be for example, "setOpaqueObject:"
+		 *  We need to remove the "set", ":" and lowercase the first
+		 *  letter of the remainder
+		 */
+		NSString *selectorString = NSStringFromSelector(_cmd);
+		NSMutableString *key = [selectorString mutableCopy];
+		
+		// Remove the ':' at the end
+		[key deleteCharactersInRange:NSMakeRange(key.length - 1, 1)]; 
+		
+		// Remove the 'set' prefix
+		[key deleteCharactersInRange:NSMakeRange(0, 3)];
+		
+		// Lowercase the first character
+		NSString *lowercaseFirstChar = [[key substringToIndex:1] lowercaseString];
+		[key replaceCharactersnRange:NSMakeRange(0, 1) withString:lowercaseFirstChar];
+		
+		if (value) {
+			[backingStore setObject:value forKey:key];
+		} else {
+			[backingStore removeObjectForKey:key];
+		}
+		
+	}
+	
+然后，使用 EOCAutoDictionary 就是件很简单的事了：
+
+	EOCAutoDictionary *dict = [EOCAutoDictionary new];
+	dict.date = [NSdate dateWithTimeIntervalSince1970:475372800];
+	NSLog(@"dict.date = %@", dict.date);
+	// Output dict.date = 1985-01-24 00:00:00 +0000
+	
+字典上的其它属性可以如同 date 属性一样被访问，新的属性可以通过添加 @property 定义和声明其为 @dynamic 引入。iOS 上的 CoreAnimation 库中的 CALayer 采用了类似的方法。这个方法允许 CALayer 成为一个键值编码兼容的容器类，意味着它可以存储键值对。CALayer 使用这种能力以允许添加客户自定义的动画属性，据此属性值的存储直接由基类完成，而属性定义可以在子类中添加。
+
+### 要点回顾
+* 消息转发时一个对象在被发现无法回应一个选择器时所需经历的过程
+* 动态方法解析被用于在运行时向类添加方法
+* 对象可以声明其它对象来处理它所不能处理的特定选择器
+* 完全转发只发生在上述处理选择器的方法都没使用的情况下
 
 ## 条目 13：考虑使用 Swizzling 方法调试黑箱方法
 
