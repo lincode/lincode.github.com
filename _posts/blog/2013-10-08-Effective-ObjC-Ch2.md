@@ -820,5 +820,108 @@ objc_msgSend 函数能否调用正确的方法，取决于接受者的类型和�
 * 完全转发只发生在上述处理选择器的方法都没使用的情况下
 
 ## 条目 13：考虑使用 Swizzling 方法调试黑箱方法
+当一条消息被发送到 Objective-C 对象时，待调用方法是在运行时被解析出来的，如同条目 11 中解释的那样。你可能会突然想到对于特定选择器名的方法调用在运行时也许可以改变。你是正确的。这个功能能带来很多有利之处，因为它可以被用于改变你看不到源代码的类的某些功能，而不用继承类和重写方法。因此，新功能可以被类的所有实例使用，而不仅仅只为有重写方法的子类的实例所用。这样的方式常被成为 swizzling 方法。
 
-## 条目 14：理解对象类是什么
+一个类的方法列表包含一个选择器名指向其实现的对照列表，告诉动态消息系统去哪儿寻找给定方法的实现。实现被以名为 IMPs 的函数指针存储，并有如下原型：
+
+	id (*IMP)(id, SEL, ...)
+
+NSString 类可以对 lowercaseString，uppercaseString，和 capitalizedString，等选择器做出反应。每个选择器指向一个不同的 IMP，这构建了一个如下图 2.3 所示的表格：
+
+![alt NSStringSelectorTable](/images/blog/EffectiveObjC/2-3.jpeg "NSString‘s selector table")
+
+**图 2.3** NSString 的选择器表
+
+这个表格可以被少许被 Objective-C 运行时暴露的函数所操作。你可以向这个列表添加选择器，改变给定选择器所指向的实现，或者交换两个选择器的实现。
+
+经过一些操作，类的方法列表可能就如图 2.4 所示：
+
+![alt NSStringSelectorTable2](/images/blog/EffectiveObjC/2-4.jpeg "NSString‘s selector table after performing a few operation on it")
+
+**图 2.4** 经过一些操作后的 NSString 的选择器表
+
+一个名为 newSelector 新的选择器被加入，capitalizedString 的实现被改变，lowercaseString 和 uppercaseString 的实现被交换。所有这些都无需写一个子类，新方法表格将被用在应用中 NSString 的每个实例。我相信你会同意，这是一个非常强大的功能。
+
+这个条目的主题涉及交换方法实现的过程。这么做的过程中，附加功能可以被加入到方法中。可是，在解释如何添加功能之前，我会解释如何简单的交换两个存在的方法实现。为了交换方法实现，你会用到如下函数：
+
+	void method_exchangeImplementations(Method m1, Method m2)
+
+这个函数需要两个将被交换实现的方法作为参数，它可以通过以下函数获得：
+	
+	Method class_getInstanceMethod(Class aClass, SEL aSelector)
+
+这个函数从一个类的给定选择器获取方法。为了交换前例所示的 lowercaseString 和 uppercaseString 的实现，你会这么做：
+	
+	Method originalMethod = 
+		class_getInstanceMethod([NSString class], @selector(lowercaseString));
+
+	Method swappedMethod = 
+		class_getInstanceMethod([NSString class], @selector(uppercaseString));
+		
+	method_exchangeImplementations(originalMethod, swappedMethod);
+
+从此，任何时候 NSString 的实例有 lowercaseString 调用时，uppercaseString 的原始实现都会被调用，有 upprcaseString 调用时则反之。
+
+	NSString *string = @"ThIs iS tHe StRiNg";
+	
+	NSString *lowercaseString = [string lowercaseString];
+	NSLog(@"lowercaseString=%@", lowercaseString);
+	// Output:lowercaseString = THIS IS THE STRING
+	
+	NSString *uppercaseString = [string uppercaseString];
+	NSLog(@"uppercaseString=%@", uppercaseString);
+	// Output:uppercaseString = this is the string
+
+这解释如何交换方法的实现，但实际上，像这样简单地交换两个实现并不十分有用。毕竟，upercaseString 和 lowercaseString 应该做它们该做的事情。你没有理由去交换它们。但是同样的方法可以用于向一个已经存在的方法实现添加功能。如果你需要在 lowercaseString 每次被调用时，打出日志呢？同样的方法可以用于完成这个任务。它添加一个方法，这个方法首先实现了附加功能，之后再调用原始实现。
+	
+可以通过使用目录来添加方法，如下：
+
+	@interface NSString(EOCMyAdditions)
+	-(NSString *)eoc_myLowercaseString;
+	@end
+
+这个方法被用于和原始的 lowercaseString 方法交换，所以方法列表最终看起来会如图 2.5 所示。
+
+![alt NSStringSelectorTable3](/images/blog/EffectiveObjC/2-5.jpeg "Swapping the implementations of lowercaseString and eoc_myLowercaseString")
+
+**图 2.5** 交换 lowercaseString 和 eoc_myLowercaseString 的实现
+
+新方法的实现看起来会像这样：
+
+	@implementation NSString(EOCMyAddition)
+	- (NSString *)eoc_myLowercaseString {
+		NSString *lowercase = [self eoc_mylowercaseString];
+		NSLog(@"%@=>%@", self, lowercase);
+		return lowercase;
+	}
+	@end
+
+这可能看起来像个递归调用，但是记住实现将会被替换。所以在运行时，当 eoc_myLowercaseString selector 被查找到，lowercaseString 的实现将被调用。最后，如下代码被用于交换方法实现：
+
+	Method originalMethod = 
+		class_getInstanceMethod([NSString class], @selector(lowercaseString));
+
+	Method swappedMethod = 
+		class_getInstanceMethod([NSString class], @selector(eoc_myLowercaseString));
+		
+	method_exchangeImplementations(originalMethod, swappedMethod);
+	
+从此，任何 NSString 在被调用 lowercaseString 时，日志将会被打印出：
+
+	NSString *string = @"ThIs iS tHe StRiNg";
+	NSLog(@"lowercaseString=%@", lowercaseString);
+	// Output:ThIs iS tHe StRiNg => this is the string
+
+能够像这样添加日志，对于那些对你完全不透明的方法来说，是一个非常有用的调试功能。除了调试之外，你很难找其他需要用到如 swizzling 方法这样全局性地改变类的功能的地方。不要认为仅仅因为你能这么做，就你应该使用这个功能。滥用很容易导致代码难以阅读和维护。
+
+### 要点回顾
+* 类的某个选择器的方法实现可以在运行时被添加和替换。
+* Swizzling 是将一个方法的实现和另一个替换的过程，通常会在原来实现上添加功能。
+* 运行时干预方法通常只在调试时是好注意，不应仅因能够这么做而滥用。
+
+## 条目 14：理解 Class 对象是什么
+
+### 要点回顾
+* 类继承层次通过 Class 对象反映，它的实例有一个指向其自身类型的指针。
+* 自省应该在对象的类型在编译时无法知道时使用。
+* 自省方法在任何可能被使用到的地方总是优于直接比较对象的类型，因为对象也许实现了消息转发。
