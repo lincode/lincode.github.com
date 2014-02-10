@@ -920,6 +920,99 @@ NSString 类可以对 lowercaseString，uppercaseString，和 capitalizedString�
 * 运行时干预方法通常只在调试时是好注意，不应仅因能够这么做而滥用。
 
 ## 条目 14：理解 Class 对象是什么
+Objective-C 本质上是极为动态的。条目 11 解释了给定方法调用的对应实现是如何被查找到的，并且条目 12 也解释了在一个类无法马上对特定选择器做出反应时，转发如何工作。但是关于消息的接收器：对象自身呢？运行时如何知道一个对象的类型是什么？一个对象的类型不是在编译时被绑定的，而是在运行时被查找出来的。而且，一个特定的类型，id，可以被用于指代任何 Objective-C 类型。通常来说，你应该尽量在可能的时候明确类型，以使得编译器可以提出警告，发送了接收器无法处理的消息。相反地，任何类型为 id 的对象被假设可对任何消息调用做出反应。
+
+如你从条目 12 里所知道的，虽然，编译器无法知道所有的选择器确切实现，因为它们可以在运行时被动态插入。但即使这个技术被用到，编译器希望在头文件看到全部方法的原型定义，以使得它可以知道方法的签名从而能够执行正确代码以进行消息分发。
+
+在运行时检查对象类型被称为自省，这是一个强大有用的功能。在 Foundation 库中以 NSObject 协议的一部分提供，所有继承了通用根类（NSObject 和 NSProxy）的对象都符合这个协议。如我马上就要解释的那样，使用这些方法而不是直接进行对象类的比较被认为是更慎重的做法。可是，在接受自省技术之前，这有些 Objective-C 对象是什么的背景要介绍。
+
+每个 Objective-C 对象实例是一个指向某块内存的指针。这就是为何在变量申明时类型后面你会看到 * 的原因：
+
+	NSString *pointerVariable = @"Some string";
+	
+如果你来自 C 语言编程世界，你会理解这句代码的确切含义。对于你们中的非 C 语言程序员，这意味这 pointerVariable 是一个持有一段内存地址的变量，那段内存地址存储的数据类型是 NSString。这个变量因此“指向” NSString 实例。这是所有 Objective-C 对象都会涉及道德；如果你试图为一个对象在堆中申请内存，你会收到一个编译器错误：
+
+	NSString stackVariable = @"Some string";
+	// error:interface type cannot be statically allocated
+
+通用类型，id，已经是一个指针了，所以你可以这么使用它：
+
+	id genericTypedString = @"Some string";
+
+这个定义在语法上和变量为 NSString* 类型是相同的。唯一的区别是指定了明确的类型，如果你试图调用一个不存在于该类对象的方法，编译器可以帮助给出警报。
+
+每个对象背后的数据结构被在运行时头文件定义，一同定义的还有 id 类型本身：
+
+	typedef struct objc_object {
+		Class isa;
+	} *id;
+	
+因此，每个对象都包含一个 Class 类型变量，并且是第一个数据成员。这个变量定义对象的类并经常被认为是一个 “is a” 指针。例如，对象 “is a” NSString。Class 对象也在运行时头文件中定义了：
+
+	typedef struct objc_class *Class;
+	struct objc_class {
+		Class isa;
+		Class super_class;
+		const char *name;
+		long version;
+		long info;
+		long instance_size;
+		struct objc_ivar_list *ivars;
+		struct objc_method_list **methodLists;
+		struct objc_cache_list *caches;
+		struct objc_protocol_list *protocols;
+	};
+
+这个结构体持有关于类的元数据，例如类的实例实现了什么方法，有什么实例变量。这个结构体的第一个变量是 isa 指针，这意味着一个 Class 本身也是一个 Objective-C 对象。这个结构体还有其他变量，名为 super_class，它定义了其父类。一个类的类型（例如，isa 指针指向的类）是另一个类，这是一个元类，被用于描述关于类的实例的元数据。这是类方法被定义的地方，因为它们可以被认为是类的实例的实例方法。一个类只要拥有了一个实例，就会拥有且仅有一个和它相关的元类的实例。 
+
+一个继承自 NSObject 的名为 SomeClass 的类继承层次看起来如图 2.6。
+
+![alt ClassHierarchy](/images/blog/EffectiveObjC/2-6.jpeg "Class hierarchy")
+
+**图 2.6** 继承自 NSObject 的 SomeClass 的实例的类继承层次，包括元类继承层次
+
+super_class 指针创建了这个层次，isa 指针描述了实例的类型。你可以操作这个结构以实现自省。你可以找出一个对象是否可以对特定的选择器做出反应，是否符合一个特定的协议，还能知道关于对象处于类继承结构的什么位置。
+
+## 检查类的继承层次
+
+自省方法可以备用检查类的继承层次。你可以使用 isMemberOfClass： 检查一个对象是否是特定类的实例，或者使用 isKindOfClass: 检查一个对象是否是特定类的实例或从特定类继承的。例如：
+
+	NSMutableDictionary *dict = [NSMutableDictioanry new];
+	[dict isMemberOfClass:[NSDictionary class]]; ///< NO
+	[dict isMemberOfClass:[NSMutableDictionary class]]; ///< YES
+	[dict isKindOfClass:[NSDictionary class]]; ///< NO
+	[dict isKindOfClass:[NSArray class]]; ///< NO
+
+这种自省通过使用对象类的 isa 指针，再使用 super_class 寻历继承层次来工作。由于对象是动态的，这个功能就异常重要。没有自省你甚至不能完全知道类型，这不像其它你所熟悉的语言那样。	
+由于 Objective-C 对象类型是动态的，自省便得十分有用。自省通常被用于当从集合中提取对象是，因为它们不是强类型，这意味着从集合中提取出的对象的类型通常是 id。自省可以被用在需要知道类型的场合：例如，当需要从一个存在文本文件的数组中提取对象，生成逗号分隔字符串。下面的代码可以被使用到这个场合中：
+	
+	- (NSString *)commaSeparatedStringFromObjects:(NSArray *)array {
+		NSMutableString *string = [NSMutableString new];
+		for (id object in array) {
+			if ([object isKindOfClass:[NSString class]]) { 
+				[string appendFormat:@"%@,", object];
+			}  else if ([object isKindOfClass:[NSNumber class]]) { 
+				[string appendFormat:@"%d,", [object intValue]]; 
+			}  else if ([object isKindOfClass:[NSData class]]) { 
+				NSString *base64Encoded = /* base64 encoded data */; 
+				[string appendFormat:@"%@,", base64Encoded]; 
+			}  else { 
+				// Type not supported 
+			} 
+		} 
+		return string;
+	}
+
+使用等号检查类对象也是可能的。你可以使用 == 而不是 isEqual: 方法，如你在比较 Objective-C 对象常用到那样（见条目 8）。理由是类是单例的，在一个应用中，每个类的 Class 对象都只有一个单独的实例。因此，另一种测试对象是否就是一个类的实例的方法如下：
+
+	id object=/*...*/;
+	if ([object class] == [EOCSomeClass class]) {
+		// 'object' is an instance of EOCSomeClass
+	}
+
+可是，你应该总是优先使用自省方法，而不是直接对比类对象，因为自省方法会将对象使用了消息转发（见条目 12）考虑进去。考虑到一个转发了所有选择器消息的对象。这样一个对象被称为代理，NSProxy 是为这样的对象特别准备的根类。
+
+通常，这样的代理对象如果调用方法 class，会返回代理类（例如，NSProxy 的子类）而不是被代理的对象的类。可是，如果使用代理方法，例如 isKindOfClass:，它们将会将消息转发给被代理的类。这意味这消息的返回结果将是检查被代理的对象的类型得到的。因此，这会产生一个不同于通过检查 class 方法返回的类对象的结果，因为这会返回代理类本身，而不是被代理对象的类。
 
 ### 要点回顾
 * 类继承层次通过 Class 对象反映，它的实例有一个指向其自身类型的指针。
