@@ -7,8 +7,11 @@ layout: page
 
 <div class="entry">
     {{ content }}
+</div><!-- .entry -->
+
 
         <div id="disqus_container">
+            <a href="#" class="right comment" onclick="return false;">点击查看评论</a>
             <div style="margin-bottom:20px" class="right">
                 <script type="text/javascript" charset="utf-8">
                 (function(){
@@ -32,13 +35,11 @@ layout: page
                 })()
                 </script>
             </div>
-            <a href="#" class="comment" onclick="return false;">点击查看评论</a>
+
             <div id="disqus_thread"></div>
         </div>
     </div>
 
-
-</div><!-- .entry -->
 
 <script type="text/javascript">
     $(document).ready(function(){
