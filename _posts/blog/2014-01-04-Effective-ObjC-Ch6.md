@@ -286,8 +286,8 @@ performSelector 系列方法的另外个功能是选择器可以被延迟或者�
 
 #### 要点回归
 * performSelector 系列方法有潜在得内存管理问题。如果没有办法决定哪个选择器将被执行，ARC 编译器将不能插入正确得内存管理调用。
-* 系列方法有相当限制，无法处理返回值，以及可以发送给方法的参数数量。
-* 允许在不同线程里执行 performSelector 系列方法的，最好使用特定的 Grand Central Dispatch（GCD）调用 block 来代替。
+* 系列方法有相当限制，要遵守返回值类型，传入方法的参数的数量也有限制。
+* 允许在不同线程里执行的 performSelector 系列方法的地方，最好使用特定的 Grand Central Dispatch（GCD）调用 block 来代替。
 
 ## 条目 43 ： 知道何时使用 GCD 和 何时使用操作队列
 
