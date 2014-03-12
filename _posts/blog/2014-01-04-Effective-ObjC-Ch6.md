@@ -18,10 +18,98 @@ Blocks 和 GCD 都是现代 Objective-C 编程的支柱。因此，你需要理�
 
 ## 条目 37 ： 理解 Blocks
 
+Blocks 提供了闭包。这个语音功能被作为 GCC 编译器的一个扩展加入，在所有现代 Clang 版本中都是可用的（Clang 是 Mac OS X 和 iOS 开发所使用的编译器项目）。blocks 可以正确运行的运行时环境从 Mac OS X 10.4 和 iOS 4.0 开始便具备了。这个语音特性技术上讲是一个 C 级别的功能因此可以被用于 C，C++，Objective-C 和 Objective-C++ 代码，被支持的编译器所变异，运行于支持运行 block 运行时环境。
+
+#### Block 基础
+一个 block 类似一个函数但相对于其他函数是内联定义，并且共享了它定义处作用域的上下文。用于指示一个 block 的愈发标识是脱字符，后面跟着包含了 block 实现的 block 作用域。例如，一个简单的 block 看起来像这样：
+
+	^{
+		// Block implementation here
+	}
+
+一个 block 也简单的是一个值，也有相关的类型。如同 int， float，或者 Objective-C 对象一样，一个 block 可以被赋给一个变量，然后就像其他变量一样使用。block 类型的愈发类似于函数指针。下面一个简单 block 的简单例子，它没有参数也没有返回值：
+
+	void (^someBlock)() = ^{		// Block implementation here	};
+
+这个 block 定义了一个名为 someBlock 的变量。这可能看起来有些奇怪，因为变量名在中间偏右，但是一旦你理解了这个语法，它就很容易阅读了。block 类型的语法结构如下：
+	return_type (^block_name)(parameters)
+
+为了定义一个返回 int 并带有个两个 int 参数的 block，你将会用到如下语法：
+
+	int (^addBlock)(int a, int b) = ^(int a, int b){ 
+		return a + b;	};
+
+一个 block 可以被如同函数般使用。所以，例如，addBlock 可以被这么用：
+	
+	int add = addBlock(2, 5); //< add = 7
+
+block 强大的功能是它允许你使用它申明处的上下文 。这以为这任何在 block 申明处的上下文中可用的变量在 block 中都是可用的。例如，你可以这样定义一个使用其他变量 block：
+
+	int additional = 5;	int (^addBlock)(int a, int b) = ^(int a, int b){		return a + b + additional; 	};	int add = addBlock(2, 5); //< add = 12
+
+缺省的，任何被 block 使用的变量都不能被 block 修改。在这个例子中，如果名为 additional 的变量在 block 中被改变了，编译器将会报错。可是，变量可以通过 __block 标识符申明为可被 block 改变。例如，一个 block 可以被用于遍历数组（见条目 48）以判断数组中有多少个数小于 2:
+
+	NSArray *array = @[@0, @1, @2, @3, @4, @5]; 
+	__block NSInteger count = 0;	[array enumerateObjectsUsingBlock:	^(NSNumber *number, NSUInteger idx, BOOL *stop){ 		if ([number compare:@2] == 	NSOrderedAscending) {			count++; 		}	}];	// count = 2
+
+这个例子也展示了一个内联 block 的使用。传入 enumerateObjectsUsingBlock: 方法的 block 没有被赋给某个本地变量，而是为做了一个方法调用的内联声明。这个普遍的使用的 block 代码模式展示了为何它如此有用。在 block 成为语言的一部分之前，上面的代码需要通过传入函数指针或者一个遍历方法可以调用的选择器名来完成。状态必须手动传入传出，通常通过一个不透明的空指针，因此便引入了额外的代码，并将方法分割。申明一个内联 block 意味着业务逻辑都集中在一处。
+
+当一个对象类型的变量被 block 使用时，一个 block 隐式地保留了它。它会在 block 释放时被释放。理解 block 这一点非常重要。block 本身可以被视为对象。实际上，blocks 可以对很多 Objective-C 对象能够响应的选择器做出反应。理解 block 被如同其他对象一样做了引用计数是很重要的。当 block 的最后的引用被删除了，它就被销毁了。这么做，任何被 block 使用的对象释放和保留都会平衡。
+
+如果 block 在 Objective-C 类的实例方法中被定义，self 变量和类的实例在 block 都是可用的。实例变量总是可以可写的，无需显式地被申明为 __block。但是如果一个实例变量被读或写了， self 变量就隐式的被使用了，因为实例变量关系到实例。例如，考虑下面的名为 EOCClass 的方法中 block：
+
+	@interface EOCClass
+	- (void)anInstanceMethod { // ...		void (^someBlock)() = ^{			_anInstanceVariable = @"Something"; 			NSLog(@"_anInstanceVariable = %@",  _anInstanceVariable);		};		// ...	} 
+	@end
+
+EOCClass 的实例有一个 anInstanceMethod 方法，它如同 self 变量一样。很容易忘记 self 也被这种类型的 block 使用，因为它没有在代码中显式使用。可是，访问一个实例变量等效如下代码：
+
+	self->_anInstanceVariable = @"Something";
+
+这就是为什么 self 变量也被使用了。更多地，属性（见条目 6）会被用于访问实例变量，在这种例子中，self 是显式地：
+
+	self.aProperty = @"Something";
+	
+然而，记住 self 是一个对象，在被 block 使用时会被保留是很重要的。这种情况 retain 循环，这常由 block 也被 self 指向的对象保留所引起。见条目 40 以获得更多信息。
+
+#### Block 内部
+
+Objective-C 中的每一个对象都占据一定的内存区。这块内存区因对象不同而有不同的大小，这取决于实例变量的数量和其包含的相关数据的多少。一个 block 本身也是一个对象，因为 block 内存区的第一个变量被定义为一个指向 Class Object 的指针，称为 isa 指针（见条目 41）。Block 占据的剩余内存包含了使其正常运行的各类信息。图 6.1 展示了 block 结构图的细节。
+
+![alt Block](/images/blog/EffectiveObjC/6-1.jpeg "Block layout")
+
+在结构图中最重要的东西是名为 invoke 的变量，它是一个指向 block 的实现的函数指针。函数原型要求至少一个 void * 类型的参数，它其实就是 block 自己。调用 block 其实就是嗲用一个将状态通过 void * 不透明指针传入的函数指针。Block 将之前使用标准 C 语言功能完成的功能包装成一个简洁易用的接口。
+
+descriptor 变量是一个指向每个 block 都拥有的结构体的指针，它声明了 block 对象的大小，以及 copy 和 dispose 这些便利方法的函数指针。这些便利方法在 block 被拷贝和被销毁时被调用，例如，执行任何保留和释放时。
+
+最后，一个 block 包含它所使用的变量的全部拷贝。这些拷贝被存储在 descriptor 变量之后，并占据了所有使用到的变量那么大的空间。注意这不意味着对象本身被拷贝了，而是只是对象的指针而已。当 block 运行时，被使用的变量被从这块内存区域读出，这就是 block 为何需要被像参数一样传入 invoke 函数。
+
+#### 全局，栈和堆 Block
+当 blocks 被定义是 ，分配给它的内存空间是在栈上。这意味着 block 只在它定义的作用域有效。例如，下面的例子是危险的：
+
+	void (^block)();	if ( /* some condition */ ) {		block = ^{ 			NSLog(@"Block A");		};	} else {		block = ^{ 			NSLog(@"Block B");		};	}	block();
+
+这两个被定义在 if else 表达式中的 blocks 被分配在栈上。当编译器为每一个 block 分配栈内存空间时，编译器在内存被分配发生的作用域的结尾可以重写这块内存。所以每个 block 只在各自的 if 表达式中被保证有效。这段代码会没有错误地通过编译，但是在运行时可能运行正常也可能运行错误。如果不走到制成重写给定 block 的代码，代码将无误运行，但是如果，崩溃将必然发生。
+
+为了解决这个问题，可通过向 blocks 发送 copy 消息而被复制。这么做，block 被从栈拷贝到堆。一旦这么做了，block 就可被用于它定义处作用域之外的地方。一旦，被拷贝到堆，block 就变为一个引用计数对象。后续的拷贝将不再真正执行拷贝而是增加 block 的引用计数。当一个堆 block 不再被引用，它需要被释放，或者如使用了 ARC，将会被自动释放，或如果手动管理引用计数，则通过显式调用 release 释放。当引用计数降到 0 时，堆 block 如其他对象被销毁。一个栈对象无需显式地被释放，因为这已经被栈内存本身的机制（变量申明时被压入栈，作用域结尾时被全部弹出栈）自动处理了：这也是为何例子中的代码很危险。
+ 
+根据以上想法，你可以简单地对 block 调用 copy 方法以使其安全：
+
+	void (^block)();	if ( /* some condition */ ) {		block = [^{ 			NSLog(@"Block A");		} copy]; 	}	else {		block = [^{ 			NSLog(@"Block B");		} copy]; 	}	block();
+ 
+代码现在安全了。如果使用手动引用计数，block 仍然需要在完成后被释放。
+
+全局 block 是除栈和堆 blocks 外的另一种类别。不需要任何状态的 blocks，如不需要任何封闭作用域中的变量，都无需状态即可运行。Blocks 使用的整个内存区域在编译器都是可知的；所以全局 blocks 是被分配在全局内存中，而不是每次他们被使用时都被在栈中再创建一次。无法对一个全局 block 做拷贝操作，全局 block 也不可被销毁。如此 blocks，实际上是单例的。。如下是一个全局 block：
+
+	void (^block)() = ^{ 
+		NSLog(@"This is a block");	}; 
+
+执行这个 block 所需的所有信息在编译时就已知了；因此，它可以是一个全局 block。这纯粹是一个减少不必要工作的优化，如这个简单的 block 被像那些需要在被拷贝或销毁时做大量工作的更复杂的 block 一样对待的话，全局 block 下这些工作就都被减免了。
+ 
 #### 要点回归
 * Blocks 是 C，C++，和 Objective-C 的闭包。
 * Blocks 可以带参数，也可以有返回值。
-* Blocks 可以分配在栈，也可分配在堆，也可以是全局的。一个分配在栈的 block 可以被拷贝到堆，在堆中它可以被算作如标准 Objective-C 对象一样的引用。
+* Blocks 可以分配在栈，也可分配在堆，也可以是全局的。一个分配在栈的 block 可以被拷贝到堆，在堆中它可以如标准 Objective-C 对象一样被引用。
 
 ## 条目 38 ： 为公共 Block 通过 typedefs 创建类型
 
@@ -31,6 +119,7 @@ Blocks 和 GCD 都是现代 Objective-C 编程的支柱。因此，你需要理�
 * 不要害怕为同一个 block 签名定义多个类型。你可能要通过改变 block 签名而不是类型，以重构某个使用了特定 block 类型的地方。
 
 ## 条目 39 ： 用 Blocks 回调减少代码分离
+
 
 #### 要点回归
 * 当有回调的业务逻辑需要根据对象的创建而申明时，使用 block 回调会很有用。
@@ -337,17 +426,110 @@ GCD 的同步机制（见条目 41）强大得难有可与之匹敌的对手。�
 * 分发队列不是任务管理和多线程的唯一解决方案。
 * 操作队列提供了高级别的，Objective-C API，并能完成大部分 GCD 的工作。这些队列和 GCD 代码配合，也可以完成更为复杂的事情。
 
-## 条目 44 ： 使用 dispatch group 以利用平台可扩张性
+## 条目 44 ： 使用分发组以利用平台伸缩性
 
-有时在 Objective-C 中，你会遇到一些有点麻烦的代码，因为它会被多个线程访问。这种情况通常要求应用通过锁的使用而有某种同步机制。
+分发组（dispatch groups）是一个 GCD 功能，允许你很简单就能组合任务。你等待一个任务集合完成，或者通过任务完成时的回调被通知。基于几个理由，这个功能很有用，其中首要也是最有趣的是当你要竞争执行多个任务，但却需要知道何时它们全部完成。这有一个执行这样任务的例子，比如压缩文件。
+
+一个分发组通过一下函数被创建：
+
+	dispatch_group_t dispatch_group_create();
+
+一个组是一个简单的数据机构，没有任何特别之处，不像分发队列，有一个标识。你有两种方法来关联任务和分发组。第一种是使用如下函数：
+
+	void dispatch_group_async(dispatch_group_t group, dispatch_queue_t queue, dispatch_block_t block);
+
+这是普通 dispatch_async 函数的替代品，只是需要一个额外的参数 group，它标识要执行的 block 和哪个 group 关联。第二个将任务和分发组关联的方法是使用如下两个函数：
+
+	void dispatch_group_enter(dispatch_group_t group); 
+	void dispatch_group_leave(dispatch_group_t group);
+
+前者导致。
+
+因此，每次调用 dispatch_group_enter，这必须有一个对应的 dispatch_group_leave 调用。这类似于引用指针（见条目 29），这与 retains 和 releases 必须平衡以避免内存泄露一致。在分发组这个案例中，如果一个 enter 没有一个 leave 与之对应，那么 group 将永远不会结束。
+
+下面的函数可以被用于等待一个分发组结束：
+
+	long dispatch_group_wait(dispatch_group_t group, dispatch_time_t timeout); 
+
+这使组等待并有一个超时时间。超时时间表示这个函数在等待组完成时应该阻塞多长时间。如果组在超时时间之前结束，返回 0；否则，返回非 0 值。常量 DISPATCH_TIME_FOREVER 可以被用于超时值，以指示函数应该永远等待，而永不超时。
+
+下面函数是一个阻塞当前线程以等待分发组结束的替代方法：
+
+	void dispatch_group_notify(dispatch_group_t group, 
+								dispatch_queue_t queue,								dispatch_block_t block);
+
+和 wait 函数细微的不同是，这个函数允许你指定一个会在组结束时运行在指定队列上的 block。如果当前线程不应该被阻塞，而你仍然需要知道何时所有的任务已经完成乐，那么这么做就是有用的。在 Mac OS X 和 iOS 中，例如，你应该不会阻塞主线程，因为主线程是执行 UI 绘制和事件处理的地方。
+
+一个使用这个 GCD 功能的例子是执行一个数组中对象里的任务，并等待所有任务完成。下面代码做了这些：
+
+	dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+	dispatch_group_t dispatchGroup = dispatch_group_create(); 
+	for (id object in collection) {
+		dispatch_group_async(dispatchGroup, queue, ^{ [object performTask]; });
+	｝
+	dispatch_group_wait(dispatchGroup,asad DISPATCH_TIME_FOREVER); 
+	// Continue processing after completing tasks
+
+如果当前线程不应该被阻塞，你可以使用 notify 函数替代等待：
+
+	dispatch_queue_t notifyQueue = dispatch_get_main_queue(); 
+	dispatch_group_notify(dispatchGroup,						   notifyQueue,					 	   ^{								// Continue processing after completing tasks							});
+
+notify 回调应该被排入的队列完全取决于环境。这里，我已展示它是主队列，它是一个广泛使用。但是它也可以是任何自建的串型队列或者某个全局竞争队列。
+
+在这个例子中，所有任务的分发的队列都是一样的。但，并不必须如此。你可能要将这些任务放在一个更高的优先级，但是仍然将它们组织到同一个分发组，并在它们全部完成时被通知。
+
+	dispatch_queue_t lowPriorityQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0);
+	dispatch_queue_t highPriorityQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0); 
+	dispatch_group_t dispatchGroup = dispatch_group_create();	for (id object in lowPriorityObjects) { 		dispatch_group_async(dispatchGroup, lowPriorityQueue, ^{ [object performTask]; });	}
+		for (id object in highPriorityObjects) { 		dispatch_group_async(dispatchGroup, highPriorityQueue, ^{ [object performTask]; });	}
+	dispatch_queue_t notifyQueue = dispatch_get_main_queue(); 
+	dispatch_group_notify(dispatchGroup, notifyQueue, ^{		// Continue processing after completing tasks	});
+
+也许不是像上例中将任务提交到竞争队列，你可能使用分发组跟踪提交到串型队列的多任务。可是，如果所有任务被排入相同的串型队列，组并不是特别有用。因为任务将会串型执行，你可以简单地一个个排列任务，这等效于分发组地 notify 回调 block：
+
+	dispatch_queue_t queue = dispatch_queue_create("com.effectiveobjectivec.queue", NULL);
+	
+	for (id object in collection) { 
+		dispatch_async(queue, ^{ [object performTask]; });
+	}
+	
+	dispatch_async(queue, ^{
+		// Continue processing after completing tasks
+	});
+
+这段代码显示你不必总是使用分发组。有时，所需效果可以通过使用单个队列和标准异步分发来完成。
+
+为什么我提到基于系统资源执行任务？好吧，如果你回顾分发到竞争队列的例子，这应该就清楚了。GCD 自动创建新线程或者重用旧的，使它看起来适合服务于队列中 block。在竞争队列的例子中，这可以是多线程，意味着多个 blocks 竞争执行。执行给定竞争队列的竞争线程数取决于系数，大部分基于系统资源，这都由 GCD 决定。如果 CPU 是多核的，一个有很多工作要做队列，将被多个线程执行。分发组提供了一个简单的方法来竞争执行一组给定的任务，并在这组任务完成时被通知。通过 GCD 的竞争队列的性质，任务将要被基于系统资源竞争执行。留给你的是编写你的业务逻辑，而不需要编写任何复杂的调度器去处理这些竞争任务。
+
+循环一个 collection 并执行其中的元素中任务的例子可以通过使用另外一个 GCD 功能实现，如下：
+
+	void dispatch_apply(size_t iterations, dispatch_queue_t queue, void(^block)(size_t));
+
+函数执行 iterations 次 block，每次传入一个从 0 每次增加 1 的值。它像这样来使用：
+
+	dispatch_queue_t queue = dispatch_queue_create("com.effectiveobjectivec.queue", NULL);
+
+	dispatch_apply(10, queue, ^(size_t i){ // Perform task });
+
+实际上，这等价于一个简单的从 0 迭代到 9 的 for 循环，如下：
+
+	for (int i = 0; i < 10; i++) { 
+		// Perform task	}
+
+dispatch_apply 需要指出的关键点是队列可以是竞争队列。如果这样，block 将基于系统资源并行执行，就像分发组的例子一样。如果在 例子里的 collection 是一个数组，它可以用 dispatch_apply 重写如下：
+
+	dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);	dispatch_apply(array.count, queue, ^(size_t i){ 		id object = array[i];		[object performTask];	});
+
+再说一次，这个例子表示分发组并不总是必须的。可是，dispatch_apply 阻塞着直到所有迭代都已完成。因为这个理由，如果你试图在当前队列上运行 blocks （或者当前队列之上的一个串型队列中），会导致锁死。如果你要让任务在后台线程执行，你就需要使用分发组。
 
 #### 要点回归
-* Dispatch groups 被用于组织一个任务集合。你可以选择在任务组执行完成时，接到通知。
-* Dispatch groups 被用于在一个竞争的分发队列中执行多个任务。在这种情况下，GCD 基于系统资源，处理同一时期执行的多任务的排期。这些工作如果自己来写，将需要大量代码。
+* 分发组被用于组织一个任务集合。你可以选择在任务组执行完成时，接到通知。
+* 分发组被用于在一个竞争的分发队列中执行多个任务。在这种情况下，GCD 基于系统资源，处理同一时期执行的多任务的排期。这些工作如果自己来写，将需要大量代码。
 
 ## 条目 45 ： 使用 dispatch_once 执行有线程安全单一执行要求的代码
 
-单例世界模式－Objective-C 中并不陌生－常常被通过名为 sharedInstance 的类方法获取，它返回一个类的单例实例，而不是每次申请一个新的实例。一个通用的为名为 EOCClass 类的共享实例方法的实现如下：
+单例模式－Objective-C 中并不陌生－常常被通过名为 sharedInstance 的类方法获取，它返回一个类的单例实例，而不是每次申请一个新的实例。一个通用的为名为 EOCClass 类的共享实例方法的实现如下：
 
 	@implementation EOCClass
     	+ (id)sharedInstance {
@@ -382,7 +564,7 @@ GCD 的同步机制（见条目 41）强大得难有可与之匹敌的对手。�
 	 
 使用 dispatch_once 简化了代码，并保证了整体的线程安全，所以你甚至不需要考虑锁和同步。所有这些都由 GCD 处理了。token 被申明为 static，是因为每次它需要是确实相同的。在 static 域中定义变量意味着编译器确保，每次只有一个单独的变量被重用，而不是每次创建新的变量。
 
-更多的，dispatch_once 更为高效。它使用原子访问分发 token 以决定哪些代码已经被运行过了，而不是使用更重的每次都要求锁的同步机制。在我的 64 位， Mac OS X 10.8.2 上一个简单的参照，使用 @synchronized 方法访问 sharedInstance 方法，需要使用 dispatch_once 方法两倍的时间。
+更多的，dispatch_once 更为高效。它使用原子访问分发 token 以决定哪些代码已经被运行过了，而不是使用更重的每次都要求锁的同步机制。在我的 64 位， Mac OS X 10.8.2 上一个简单的参照，使用 @synchronized 方法访问 sharedInstance 方法，需要 dispatch_once 方法两倍的时间。
 
 #### 要点回归
 * 线程安全的单一的代码执行是一个普遍任务。GCD 通过 dispatch_once 提供了一个简单易用的工具。
