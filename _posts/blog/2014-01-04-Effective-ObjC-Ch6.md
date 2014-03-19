@@ -78,6 +78,8 @@ Objective-C 中的每一个对象都占据一定的内存区。这块内存区�
 
 ![alt Block](/images/blog/EffectiveObjC/6-1.jpeg "Block layout")
 
+**图 6.1** Block 的内存结构
+
 在结构图中最重要的东西是名为 invoke 的变量，它是一个指向 block 的实现的函数指针。函数原型要求至少一个 void * 类型的参数，它其实就是 block 自己。调用 block 其实就是嗲用一个将状态通过 void * 不透明指针传入的函数指针。Block 将之前使用标准 C 语言功能完成的功能包装成一个简洁易用的接口。
 
 descriptor 变量是一个指向每个 block 都拥有的结构体的指针，它声明了 block 对象的大小，以及 copy 和 dispose 这些便利方法的函数指针。这些便利方法在 block 被拷贝和被销毁时被调用，例如，执行任何保留和释放时。
@@ -128,8 +130,55 @@ descriptor 变量是一个指向每个 block 都拥有的结构体的指针，�
 
 ## 条目 40 ： 避免 block 内强引用的对象引入的 Retain 循环
 
+Blocks 可以很容易引入 retain 循环，如果他们不被仔细考虑的话。例如，如下的类提供一个下载特定 URL 的接口。一个回调 block，被称为 completion handler，当下载器开始运行时它可以被赋值。Completioan handler 需要被存为实例变量，以便在 request-completion 方法被调用时可用。
+
+	// EOCNetworkFetcher.h	#import <Foundation/Foundation.h>	typedef void(^EOCNetworkFetcherCompletionHandler)(NSData *data);	@interface EOCNetworkFetcher : NSObject 
+	@property (nonatomic, strong, readonly) NSURL *url; 
+	- (id)initWithURL:(NSURL*)url;	- (void)startWithCompletionHandler: (EOCNetworkFetcherCompletionHandler)completion; 
+	@end	
+	// EOCNetworkFetcher.m	#import "EOCNetworkFetcher.h"	@interface EOCNetworkFetcher ()		@property (nonatomic, strong, readwrite) NSURL *url;	@property (nonatomic, copy) EOCNetworkFetcherCompletionHandler completionHandler; 	@property (nonatomic, strong) NSData *downloadedData;		@end
+		@implementation EOCNetworkFetcher
+	- (id)initWithURL:(NSURL*)url { 		if ((self = [super init])) {			_url = url; 		}		return self; 	}
+	- (void)startWithCompletionHandler: (EOCNetworkFetcherCompletionHandler)completion	{		self.completionHandler = completion;		// Start the request		// Request sets downloadedData property		// When request is finished, p_requestCompleted is calle	}	- (void)p_requestCompleted { 		if (_completionHandler) {			_completionHandler(_downloadedData); 		}	}
+	@end
+
+另一个类可能创建一个网络下载对象并用它下载某个 URL 的数据，如此：
+
+	@interface EOCClass (){ 
+		EOCNetworkFetcher *_networkFetcher; 
+		NSData *_fetchedData;	}	
+	@implementation EOCClass
+	- (void)downloadData {		NSURL *url = [[NSURL alloc] initWithString: @"http://www.example.com/something.dat"]; 		_networkFetcher = [[EOCNetworkFetcher alloc] initWithURL:url];		[_networkFetcher startWithCompletionHandler:^(NSData *data){ 			NSLog(@"Request URL %@ finished", _networkFetcher.url);			_fetchedData = data; 		}];	}
+	@end
+
+这段代码看起来很平常。但是你可能没意识到 retain 循环已经出现了。它源于 completion-handler block 引用了 self 变量，因为它给 _fetchedData 实例变量赋值了（见 条目 37 更多了解使用变量）。这意味着创建了 network fetcher 的 EOCClass 实例被 block 保留了。这个 block 被 network fetcher 保留了，network fetcher 被同一个 EOCClass 对象保留，因为它持有了一个强实例变量 network fetcher。图 6.2 展示了这个 retain 循环。
+
+![alt Block Retain Cycle](/images/blog/EffectiveObjC/6-2.jpeg "Block Retain Cycle")
+**图6.2 network fetcher 和 持有它的类之间的 retian 循环**
+
+这个 retain 循环可以通过打破 _networkFetcher 实例变量的引用或者 completionHandler 属性的持有来修正。这个破坏需要在这个 network fetcher 的 completion handler 完成的情况下进行，所以 network fetcher 直到它完成为止都是可用的。例如，completion-handler 可以变为如下：
+
+	[_networkFetcher startWithCompletionHandler:^(NSData *data){ 
+		NSLog(@"Request for URL %@ finished", _networkFetcher.url); 
+		_fetchedData = data;		_networkFetcher = nil;	}
+
+retain 循环是使用 completion 回调 block 的 API 的一个通常问题，因此理解它很重要。通常，问题可以通过在合适的时机清除一个引用来解决；可是，它不能保证那个时刻总是会发生。在例子中，retain 循环只在 completion handler 运行时才被打破。如果 completion handler 永远不被运行，retain 循环将永远不会被打破，内存泄露就发生了。
+
+另外一个潜在的 retain 循环通过 completion-handler block 引入。在 completion-handler block 引用的对象不再拥有它时，这个 retain 循环便发生了。例如，拓展前面的例子，不是消费者在 network fetcher 运行时，保持一个 network fetcher 的引用，而是有一个机制使它自己存活。当 network fetcher 开始时，它可能被加入到一个全局集合，例如一个 set。结束时则被剔除出集合。代码变化如下：
+
+	- (void)downloadData {		NSURL *url = [[NSURL alloc] initWithString:@"http://www.example.com/something.dat"]; 		EOCNetworkFetcher *networkFetcher = [[EOCNetworkFetcher alloc] initWithURL:url]; 		[networkFetcher startWithCompletionHandler:^(NSData *data){ 			NSLog(@"Request URL %@ finished", 	networkFetcher.url);			_fetchedData = data; 		}];}
+
+大多数网络库使用这种方法，因为它可以避免自己持有一个可用的 fetcher 对象。一个例子是来自 Twitter 库的 TWReqeust 对象。可是，EOCNetworkFetcher 的代码中，retain 循环仍然存在。它比之前的更为微妙，虽然源于 completion－handler block 引用了请求本身。这个 block 因此保留了 fetcher，fetcher 通过 completionHandler 保留了 block。幸运的是，修正是很简单的。记住 completion handler 被保存在属性中仅仅是因为它在后面会被用到。问题是一旦 completion handler 被运行了，它就不再需要持有 block 了。所以，简单的修正是改变如下方法：
+ 
+ 	- (void)p_requestCompleted {
+ 		 if (_completionHandler) {		_completionHandler(_downloadedData); 		}		self.completionHandler = nil;  	}
+
+Retain 循环在请求完成时被解除了，而且 fetcher 对象将被销毁。这是要把 completion handler 传入 start 方法的好理由。如果，不将 completion handler 暴露为一个公共属性，你就不能在请求完成时清除它，因为那会打破你给予消费者的 completion handler 是公开的封装语义。在这种情况下，明智地打破 retain 循环唯一方法是强制消费者在自己的 handler 中清除 completionHandler 属性。但其实这并不明智，因为你不能假设消费者会这么，而不因此责备你造成了内存泄漏。
+
+两个场景。他们是在使用 block 过程中容易犯的 bug；类似地，如果你小心一些，也很容易减少这类 bug。要点是考虑 block 会使用对象，而且保留它。如果任何这些问题都是由对象直接或见解地保留了 block，你可能需要考虑如何在正确的时刻打破 retain 循环。
+
 #### 要点回归
-* 注意 blocks 使用了直接或间接 retain 了 block 的对象会引入 retian 循环这样的潜在问题。
+* 注意 blocks 使用了直接或间接 retain 了 block 内的对象，会引入 retian 循环这样的潜在问题。
 * 确保 retain 循环在恰当的时候被打破，绝不要将这个任务留给 API 的使用者们。
 
 ## 条目 41 ： 推荐使用 dispatch queues 来同步锁
