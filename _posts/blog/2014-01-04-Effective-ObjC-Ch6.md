@@ -130,7 +130,7 @@ descriptor 变量是一个指向每个 block 都拥有的结构体的指针，�
 
 ## 条目 40 ： 避免 block 内强引用的对象引入的 Retain 循环
 
-Blocks 可以很容易引入 retain 循环，如果他们不被仔细考虑的话。例如，如下的类提供一个下载特定 URL 的接口。一个回调 block，被称为 completion handler，当下载器开始运行时它可以被赋值。Completioan handler 需要被存为实例变量，以便在 request-completion 方法被调用时可用。
+Blocks 很容易引入 retain 循环，如果他们不被仔细考虑的话。例如，如下的类提供了一个下载特定 URL 的接口。一个被称为 completion handler 回调 block，当下载器开始运行时它可以被赋值。Completioan handler 需要被存为实例变量，以便在 request-completion 方法被调用时可用。
 
 	// EOCNetworkFetcher.h	#import <Foundation/Foundation.h>	typedef void(^EOCNetworkFetcherCompletionHandler)(NSData *data);	@interface EOCNetworkFetcher : NSObject 
 	@property (nonatomic, strong, readonly) NSURL *url; 
@@ -156,10 +156,10 @@ Blocks 可以很容易引入 retain 循环，如果他们不被仔细考虑的�
 ![alt Block Retain Cycle](/images/blog/EffectiveObjC/6-2.jpeg "Block Retain Cycle")
 **图6.2 network fetcher 和 持有它的类之间的 retian 循环**
 
-这个 retain 循环可以通过打破 _networkFetcher 实例变量的引用或者 completionHandler 属性的持有来修正。这个破坏需要在这个 network fetcher 的 completion handler 完成的情况下进行，所以 network fetcher 直到它完成为止都是可用的。例如，completion-handler 可以变为如下：
+这个 retain 循环可以通过打破 _networkFetcher 实例变量的引用或 completionHandler 属性的持有来修正。这个破坏需要在这个 network fetcher 的 completion handler 完成的情况下进行，所以 network fetcher 直到它完成为止都是可用的。例如，completion-handler 可以变为如下：
 
 	[_networkFetcher startWithCompletionHandler:^(NSData *data){ 
-		NSLog(@"Request for URL %@ finished", _networkFetcher.url); 
+		NSLog(@"Request for URL %@ finished", _networkFetcher.url);
 		_fetchedData = data;		_networkFetcher = nil;	}
 
 retain 循环是使用 completion 回调 block 的 API 的一个通常问题，因此理解它很重要。通常，问题可以通过在合适的时机清除一个引用来解决；可是，它不能保证那个时刻总是会发生。在例子中，retain 循环只在 completion handler 运行时才被打破。如果 completion handler 永远不被运行，retain 循环将永远不会被打破，内存泄露就发生了。
