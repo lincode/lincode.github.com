@@ -1,8 +1,8 @@
 ---
 layout:    post
-title:     证书，钥匙，可信任服务
+title:     iOS 开发中的证书和钥匙
 category:  blog
-description: 证书，钥匙，可信任服务是一个函数和数据结构集合，用于认证和授权用户和进程使用钥匙和证书
+description: iOS 开发中的证书和钥匙
 tags: iOS
 ---
 
