@@ -95,11 +95,11 @@ tags: iOS
 
 ### 一些问题
 
-#### 为何需要 Code signing？
+#### 为何需要 Code Signing？
 
-Code signing 你的应用使得操作系统可以识别出是谁为你的应用签名了，并确保应用的内容没有被修改。但需要注意，**资源文件并没有被签名**，也就是说如果你替换了图片，nib 等资源文件，这个变化并不会破坏签名的有效性。
+Code Signing 你的应用使得操作系统可以识别出是谁为你的应用签名了，并确保应用的内容没有被修改。但需要注意，**资源文件并没有被签名**，也就是说如果你替换了图片，nib 等资源文件，这个变化并不会破坏签名的有效性。
 
-#### 换一台电脑 code signing？
+#### 换一台电脑 Code Signing？
 
 有人使用导出私钥的方法。但这其实是有风险的。因为私钥应该由特定权限的人妥善保存。
 
@@ -147,3 +147,12 @@ Xcode → Preferences → Accounts，选择你要导出的 Apple ID，点击左�
 
 * iOS Distribution Certificate (In-house, Internal Use Apps)
 如果 inhouse 证书过期，用户将不能再运行这个证书签发的应用。你必须发布一个用新的证书签发的新版本。
+
+
+### 参考文档
+
+* [Certificate, Key, and Trust Services Concepts](https://developer.apple.com/library/mac/documentation/security/conceptual/certkeytrustprogguide/02concepts/concepts.html#//apple_ref/doc/uid/TP40001358-CH204-TP9 "certificate")
+
+* [Maintaining Your Signing Identities and Certificates](https://developer.apple.com/library/ios/documentation/IDEs/Conceptual/AppDistributionGuide/MaintainingCertificates/MaintainingCertificates.html#//apple_ref/doc/uid/TP40012582-CH31-SW32 "")
+
+
