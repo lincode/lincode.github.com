@@ -4,7 +4,7 @@ title: About lincode
 ---
 
 <div class="entry">
-	我叫 <a href="/">lincode</a> 。将来也许会改变职业，但我现在的职业是程序员。我生于中国湖南，同样将来也许会搬家，但现在居住于北京。
+	我叫 <a href="/">lincode</a>
 <br/>
 <br/>
 	<h3>欢迎因以下原因联系我:</h3>
@@ -13,7 +13,6 @@ title: About lincode
 	<li>职业机会</li>
 	<li>关于项目的讨论</li>
 	<li>朋友恢复联系</li>
-	<li>其他有趣的事情</li>
 	</ul>
 
 	<div class="about-link">
