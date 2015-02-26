@@ -1,8 +1,8 @@
 ---
 layout:     post
-title:      Swift 的惰性计算
+title:      Swift中更高层级的抽象
 category: blog
-description: Swift 支持函数式编程，这一篇介绍Swift的更高层级的抽象
+description: Swift支持函数式编程，这一篇介绍Swift的更高层级的抽象
 tags: blog
 ---
 

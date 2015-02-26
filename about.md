@@ -4,7 +4,7 @@ title: About lincode
 ---
 
 <div class="entry">
-	我叫 <a href="/">lincode</a>
+	我叫<a href="/">lincode</a>，是一名程序员。
 <br/>
 <br/>
 	<h3>欢迎因以下原因联系我:</h3>
@@ -16,7 +16,7 @@ title: About lincode
 	</ul>
 
 	<div class="about-link">
-	    <a href="" title="邮箱" target="_blank" onclick="alert('guolin.mobi@gmail.com , 你懂得！');return false;">eMail&gt;&gt;</a>
+	    <a href="" title="邮箱" target="_blank" onclick="alert('guolin.mobi@gmail.com , 你懂的！');return false;">eMail&gt;&gt;</a>
 	    <a href="http://www.douban.com/people/linguo" title="我的书影音" target="_blank">豆瓣&gt;&gt;</a>
 	    <a href="http://www.github.com/lincode" title="我的代码" target="_blank">Github&gt;&gt;</a>
 	</div>
