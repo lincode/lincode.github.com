@@ -1,4 +1,3 @@
-
 ---
 layout:     post
 title:      Swift的泛型编程
