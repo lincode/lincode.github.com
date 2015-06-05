@@ -37,7 +37,7 @@ Swift中的函数都是高阶函数，这和Scala，Haskell一致。与此对照
 
 map函数遍历了数组，用闭包处理了所有元素。并返回了一个处理过的新数组。
 
-Objective-C在后期加入了对闭包支持。闭包是一种一级函数。通过支持闭包，objective-C拓展其语言表达能力。但是如果将Swift的闭包语法与Objective-C的闭包相比，Swift的闭包显得相当简洁和优雅，Objective-C的闭包则显得有些繁重复杂。
+Objective-C在后期加入了对闭包支持。闭包是一种一级函数。通过支持闭包，Objective-C拓展其语言表达能力。但是如果将Swift的闭包语法与Objective-C的闭包相比，Swift的闭包显得相当简洁和优雅，Objective-C的闭包则显得有些繁重复杂。
 
 ## 函数柯里化（Function Curring）
 
