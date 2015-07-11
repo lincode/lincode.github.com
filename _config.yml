@@ -1,17 +1,11 @@
-auto:	          true
+auto: true
 
-markdown:         rdiscount
-pygments:         true
-paginate:         6
-permalink:        /:title
+markdown: rdiscount
+pygments: true
+paginate: 8
+permalink: /:title
 
-title:            述而不作
-url:              http://lincode.github.com
-feed:             /atom.xml
-author:
-    name:         lincode
-description:      "lincode\'s Blog"
-author_info:      <a href="http://blog.guo-lin.com/about">lincode</a>
-
-copyright:
-    - Design by <a href="http://beiyuu.com/about" title="beiyuu" target="_blank">Beiyuu</a> &copy; Copyright 2012
+title: lincode
+url: http://lincode.github.io
+feed: /atom.xml
+author_info: <a href="http://lincode.github.io/">lincode</a>
