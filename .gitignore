@@ -1,6 +1,7 @@
 
 #global
 *.orig
+.swp
 
 #ios
 .DS_Store
