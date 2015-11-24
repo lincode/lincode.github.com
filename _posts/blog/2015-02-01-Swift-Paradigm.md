@@ -1,8 +1,8 @@
 ---
 layout:     post
-title:      多范式编程语言－以 Swift 为例
+title:      多范式编程语言－以Swift为例
 category: blog
-description: 以 Swift 为例，聊一下多范式编程语言
+description: 以Swift为例，聊一下多范式编程语言
 tags: blog
 ---
 
