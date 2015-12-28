@@ -150,15 +150,10 @@ Apple和Google都有更新其主要开发语言的动作，Apple已经将大部�
 随着时间的发展，为开发的各个阶段服务的工具都相应出现了：
 
 - 项目依赖管理：Cocoapods（iOS）；Gradle（Android）
-
 - 单元测试：Kiwi（iOS）；JUnit（Android）
-
 - beta测试：TestFlight（被Apple收购）
-
 - bug监控：Crashlytics（被Twitter收购）
-
 - 数据统计：Flurry Analytics；友盟
-
 - 性能监控：OneAPM
 
 这些工具构筑开发高质量大型的App的基础。使得整个移动开发的生态环境越来越好。
