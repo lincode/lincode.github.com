@@ -81,7 +81,7 @@ iPhone 和 Android 手机的性能已经大大超过了诺基亚时代的手机�
 
 混合开发的直白的解释是，Native 和 Web 技术都要用。但形式上，应用仍然和浏览器无关，用户还是需要在 App Store 和 Android Market 下载应用。只是在开发时，开发者以 Native 代码为主体框架，在合适的地方部分使用 Web 技术。比如，一个 iOS 应用中，在合适的 UIViewController 中放置一个 UIWebview（一个浏览器引擎，只拥有渲染 HTML，CSS 和执行 JavaScript 的核心功能）。这样，部分用户界面就可以使用 Web 技术实现。
 
-在不同的产品中的 Hybrid 技术，Native 和 Web 代码比例并不确定，可视场景灵活决定。这样就可以在合适的部分使用 Web 技术，获取开发效率提升的好处，而在需要密集计算的地方又可以使用 Native 技术，以避免 Web 技术的弱点，提供良好的体验。当然，这样的灵活性并不是免费的，开发者需要为这样的开发模式提供一些基础设施，并为其带来的一些问题做好准备，比如：
+在不同的产品中的 Hybrid 技术，Native 和 Web 代码比例并不确定，可视场景灵活决定。这样就可以在合适的部分使用 Web 技术，获取开发效率提升的好处，而在需要密集计算的地方（比如，动画，页面切换）又可以使用 Native 技术，以避免 Web 技术的弱点，提供良好的体验。当然，这样的灵活性并不是免费的，开发者需要为这样的开发模式提供一些基础设施，并为其带来的一些问题做好准备，比如：
 
 - 开发者需要提供 Native 和 Web 代码之间的相互通信机制。
 - 开发者需要处理 HTML，CSS 和 JavaScript 等前端资源文件的缓存和更新。
@@ -112,14 +112,14 @@ Appcelerator 的优势是，开发者可以使用其提供工具自动为 iOS �
 
 在说 [React Native](https://facebook.github.io/react-native/) 之前，需要先聊聊 [React](https://facebook.github.io/react/)。 React 是 Facebook 推出的一款 JavaScript 库。Facebook 声称他们创造 React 是为了解决一个问题：构建随着时间变化数据不断变化的大规模应用程序。大家普遍认为这个库对这个问题解决得还不错。React 在 Facebook 和 Instagram 已经得到广泛使用。2013年，Facebook 将其开源。现在越来越多的前端开发者开始使用 React 开发 Web 应用。React 使得前端开发更趋于组件化，这使得前端代码的可重用，可维护，和可测试性更好了。并且通过使用 [Virtual DOM](https://facebook.github.io/react/docs/glossary.html) 减轻有复杂交互的大型 Web 页面的运行性能问题。可以说，React 是一个引入了不错开发理念的框架.要强调的是，它仍然是一个前端框架，这一点和 jQuery 类似。
 
-React Native 则是一个移动开发框架。2015年，Facebook 将其开源，现已支持 iOS 和 Android 两大操作系统。仅从名字就可以知道 React Native 和 React 关系紧密。React Native 继承了 React 的整套设计哲学，可以认为 React Native 提供了一个用 React 写移动应用的方案。但是 React Native 时语法要求稍微严格一些：
+React Native 则是一个移动开发框架。2015年，Facebook 将其开源，现已支持 iOS 和 Android 两大操作系统。仅从名字就可以知道 React Native 和 React 关系紧密。Facebook 声称：React Native 的目的是使得使用 React Native 开发出来的应用既拥有 Native 的用户体验，又有 React 的开发效率。React Native 继承了 React 的整套设计哲学，可以认为 React Native 提供了一个用 React 写移动应用的方案。但是 React Native 时语法要求稍微严格一些：
 
 - React Native 只支持 [JSX](https://facebook.github.io/react/docs/jsx-in-depth.html) 标签而不支持 HTML；
 - React Native 只支持 [css-layout](https://github.com/facebook/css-layout) 实现的部分 css 语法，而这只是 css 的一个子集。
 
-实现原理上，React Native 并没有运行在浏览器引擎中。不像大部分前端框架的主要任务是简化 DOM 树的处理，React Native 和 DOM 没有关系。React Native 重写了大部分的系统 UI 组件，并在框架内处理好了 JavaScript 和原生组件之间的调用和通信。开发者可以通过 React 的风格 JavaScript 代码使用这些 React Native UI 组件构建应用的交互界面。
+实现原理上，React Native 并没有运行在浏览器引擎中。不像大部分前端框架的主要任务是简化 DOM 树的处理，React Native 和 DOM 没有关系。React Native 重写了大部分的系统 UI 组件，并在框架内处理好了 JavaScript 和原生组件之间的调用和通信。开发者可以通过 React 的风格 JavaScript 代码使用这些 React Native UI 组件构建应用的交互界面。可以认为 React Native 实现了一个简略的渲染引擎，并且仍然使用 React 的来作为这个渲染引擎的编程语言。所以 React Native 这个项目和 Filpboard 的 [React Canvas](https://github.com/Flipboard/react-canvas) 是类似的。Flipboard 也自己实现了一个渲染引擎，只是结果都是以 HTML Canvas 形式输出。如果，我是 Filpboard 的开发者，应该会转向 React Native。这个迁移的难度并不会太大，却可以获得来自 React/ React Native 团队更好的支持。
 
-这样呈现出来的仍然是一堆原生组件组合而成的应用。应用其实就是一个原生应用。但是，整个开发方式却是 Web 式的。React 的成功对 React Native 会有一定的推动作用。但现在说结论还为时尚早，仍需更多时间和项目实践，才能确定 React Native 是否是解决移动开发效率和性能矛盾的良方。但无论结果如何，这都是一次有益的尝试。React Native 的实践也许能帮助我们回答这个问题：我们是否可以通过 Web 方式开发出 Native 的移动应用？
+虽然使用了 React，但是使用 React Native 开发出来的应用其实就是一个 Native 应用。但是，整个开发方式却是 Web 式的。React 的成功对 React Native 会有一定的推动作用。但现在下结论还为时尚早，仍需更多时间和项目实践，才能确定 React Native 是否是解决移动开发效率和性能矛盾的良方。但无论结果如何，这都是一次有益的尝试。React Native 的实践也许能帮助我们回答这个问题：我们是否可以通过 Web 方式开发出 Native 的移动应用？
 
 ## 未来
 
