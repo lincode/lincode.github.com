@@ -117,7 +117,7 @@ React Native 则是一个移动开发框架。2015年，Facebook 将其开源，
 - React Native 只支持 [JSX](https://facebook.github.io/react/docs/jsx-in-depth.html) 标签而不支持 HTML；
 - React Native 只支持 [css-layout](https://github.com/facebook/css-layout) 实现的部分 css 语法，而这只是 css 的一个子集。
 
-实现原理上，React Native 并没有运行在浏览器引擎中。不像大部分前端框架的主要任务是简化 DOM 树的处理，React Native 和 DOM 没有关系。React Native 重写了大部分的系统 UI 组件，并在框架内处理好了 JavaScript 和原生组件之间的调用和通信。开发者可以通过 React 的风格 JavaScript 代码使用这些 React Native UI 组件构建应用的交互界面。可以认为 React Native 实现了一个简略的渲染引擎，并且仍然使用 React 的来作为这个渲染引擎的编程语言。所以 React Native 这个项目和 Filpboard 的 [React Canvas](https://github.com/Flipboard/react-canvas) 是类似的。Flipboard 也自己实现了一个渲染引擎，只是结果都是以 HTML Canvas 形式输出。如果，我是 Filpboard 的开发者，应该会转向 React Native。这个迁移的难度并不会太大，却可以获得来自 React/ React Native 团队更好的支持。
+实现原理上，React Native 并没有运行在浏览器引擎中。不像大部分前端框架的主要任务是简化 DOM 树的处理，React Native 和 DOM 没有关系。React Native 重写了大部分的系统 UI 组件，并在框架内处理好了 JavaScript 和原生组件之间的调用和通信。开发者可以通过 React 的风格 JavaScript 代码使用这些 React Native UI 组件构建应用的交互界面。可以认为 React Native 实现了一个简略的渲染引擎，并且仍然使用 React 的来作为这个渲染引擎的编程语言。所以 React Native 的思想和 Filpboard 的 [React Canvas](https://github.com/Flipboard/react-canvas) 是类似的。Flipboard 也自己实现了一个渲染引擎，只是结果都是以 HTML Canvas 形式输出。由于没有复杂庞大的 DOM，性能得到了提升。如果我是 Filpboard 的开发者，应该会转向 React Native。这个迁移的难度并不会太大，却可以获得来自 React/React Native 团队的原厂支持。
 
 虽然使用了 React，但是使用 React Native 开发出来的应用其实就是一个 Native 应用。但是，整个开发方式却是 Web 式的。React 的成功对 React Native 会有一定的推动作用。但现在下结论还为时尚早，仍需更多时间和项目实践，才能确定 React Native 是否是解决移动开发效率和性能矛盾的良方。但无论结果如何，这都是一次有益的尝试。React Native 的实践也许能帮助我们回答这个问题：我们是否可以通过 Web 方式开发出 Native 的移动应用？
 
@@ -125,4 +125,6 @@ React Native 则是一个移动开发框架。2015年，Facebook 将其开源，
 
 PC 时代的 S/B 和 S/C 技术路线之争，浏览器占了上峰，使得互联网呈现出现在的面貌。
 
-移动时代 Web 和 Native 的技术路线之争仍未尘埃落定。未来移动互联网呈现出何种面貌将取决于 Web 和 Native 之争的结果。
+移动时代 Web 和 Native 的技术路线之争仍未尘埃落定。在这种情况下，Hybrid 模式所提供的在 Native 和 Web 之间灵活切换的能力仍然是开发者所需要的。React Native 也许会是一个不错的方向，但仍需更多时间才能看清楚。但无论如何，在现阶段的移动开发中， Native 的因素仍然太多，Web 的因素仍然太少。发展的趋势应该会是逐渐向 Web 倾斜。因为，硬件和系统都在发展，体验问题会慢慢缓解，但生产力永远是珍贵的，无论何时我们都在追求更高的开发效率。
+
+和 PC 时代一样，未来移动互联网呈现出何种面貌将取决于 Web 和 Native 之争的结果。
