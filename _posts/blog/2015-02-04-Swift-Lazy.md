@@ -162,6 +162,6 @@ Swift中，大量内置类如Dictionary，Array，Range，String都实现了Coll
 	let s = lazy("hello")
 
 
-# 总结
+### 总结
 
 Swift里的集合数据结构默认是严格求值的。但是，Swift也提供了惰性语法，在需要惰性时，你需要显式声明。这为开发者在Swift中使用惰性提供了条件。
