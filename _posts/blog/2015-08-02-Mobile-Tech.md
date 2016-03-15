@@ -2,7 +2,7 @@
 layout:     post
 title:      谈谈移动技术
 category: blog
-description: 移动互联网发展迅速，聊聊此时此刻移动技术的现状
+description: 移动互联网发展迅速，聊聊此时此刻移动技术的现状。
 tags: blog
 ---
 

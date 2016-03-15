@@ -1,8 +1,8 @@
 ---
-layout:     post
-title:      Swift函数式编程－函数
+layout: post
+title: Swift 函数式编程－函数
 category: blog
-description: Swift 支持函数式编程，这一篇介绍Swift中的函数
+description: “Swift 的编程范式” 之一：Swift 支持函数式编程，这一篇介绍 Swift 中的函数。
 tags: blog
 ---
 

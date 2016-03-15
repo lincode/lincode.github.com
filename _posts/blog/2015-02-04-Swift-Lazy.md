@@ -1,8 +1,8 @@
 ---
-layout:     post
-title:      Swift函数式编程－惰性计算
+layout: post
+title: Swift 函数式编程－惰性计算
 category: blog
-description: Swift支持函数式编程，这一篇介绍Swift的惰性计算
+description: “Swift 的编程范式” 之三：Swift 支持函数式编程，这一篇介绍 Swift 中的惰性计算。
 tags: blog
 ---
 

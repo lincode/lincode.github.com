@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Web 和 Native
-description: 移动开发领域我们一直面临着 Web 和 Native 这两条技术路线的选择。这种选择并不是第一次，在PC时代我们就面临过一次。后来 Web 占了上峰。那么移动时代呢？历史也许会重演。
+description: “移动开发中的 Web 技术” 之一：介绍移动开发中 Web 技术的历史。移动开发领域我们一直面临着 Web 和 Native 这两条技术路线的选择。这种选择并不是第一次，在PC时代我们就面临过一次。后来 Web 占了上峰。那么移动时代呢？历史也许会重演。
 category: blog
 ---
 

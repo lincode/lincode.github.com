@@ -1,8 +1,8 @@
 ---
 layout:     post
-title:      Swift函数式编程－不变性
+title:      Swift 函数式编程－不变性
 category: blog
-description: Swift支持函数式编程，这一篇介绍不变性（immutable）
+description: “Swift 的编程范式” 之二：Swift 支持函数式编程，这一篇介绍不变性（immutable）。
 tags: blog
 ---
 

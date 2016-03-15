@@ -1,8 +1,8 @@
 ---
-layout:     post
-title:      Swift的泛型编程
+layout: post
+title: Swift 的泛型编程
 category: blog
-description: Swift支持泛型编程
+description: “Swift 的编程范式” 之五：Swift 支持泛型编程，简单总结一下 Swift 中的泛型。。
 tags: blog
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 豆瓣混合开发实践
-description: 本文介绍豆瓣的混合开发的实现，以及混合开发实践中的一些经验。
+description: “移动开发中的 Web 技术” 之二：介绍豆瓣的混合开发的实现，以及混合开发实践中的一些经验。
 category: blog
 ---
 
