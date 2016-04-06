@@ -72,7 +72,7 @@ category: blog
 
 ##### 迭代实现
 
-如果不使用递归，可以使用迭代。利用 Swift 的 GeneratorType 将迭代过程提出来成为一个 Generator，每次调用 `next()` 返回一个待访问的节点。这里需要借助一个辅助的数据结构：栈(Stack)。
+如果不使用递归，可以使用迭代。利用 Swift 的 GeneratorType 将迭代过程提出来成为一个 Generator，这样就达到了代码复用的目的，在不同的地方可以方便地进行树的遍历。每次对 Generator 调用 `next()` 将返回一个待访问的节点。这里需要借助一个辅助的数据结构：栈(Stack) 来实现迭代过程。
 
     public class BinaryTreePreorderTravesalGenerator: GeneratorType {
 
@@ -259,6 +259,6 @@ Morris 遍历的步骤：
 
 ## 参考
 
-- [LeetCode OJ](http://www.leetcode.com/)：online judge platform for preparing technical coding interviews。
+- [LeetCode OJ](http://www.leetcode.com/), online judge platform for preparing technical coding interviews。
 - [LeetCode Swift](https://github.com/lincode/LeetCode-Swift)，LeetCode 的 Swift 答案集。
 
