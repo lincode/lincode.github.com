@@ -6,11 +6,13 @@ description: Objective-C 的一种设计模式：类簇
 tags: ObjC
 ---
 
-##类簇 Class Clusters
+## 类簇 Class Clusters
+
 类簇是 Foundation 库中广泛使用的一种设计模式。类簇将一组私有的具体的子类聚于一个公开的抽象父类之下。这种类的组合方式使得一个面向对象库的公共可见结构简化了，同时又不会削减其功能。类簇是基于 **抽象方法** 这种模式。
 
 
-##无类簇：简单概念，复杂接口
+## 无类簇：简单概念，复杂接口
+
 为了展示类簇结构和它的便利，考虑这样一个问题，构建定义了存储不同类型数字(char, int, float, double)的对象的类结构。因为不同类型有很多的共同功能 (例如，它们可以从一种类型转换到另外一种类型，可以用字符串表示)，它们可以用一个类来表示。可是，它们的存储需求是不同的，所以，将它们全用一种类表示又不是有效率的。考虑到这种因素，我们可以设计一个如图 1-1 描绘的类结构来解决这个问题。
 
 ![alt cluster1](/images/blog/Clusters/cluster1.gif "A simple hierarchy for number class")
@@ -21,7 +23,8 @@ tags: ObjC
 
 简单的概念－－创建类用于存储数字值－－能简单生出十几个类。类簇结构则展示了一种比较此概念更为简单的设计。
 
-##有类簇：简单概念，简单接口
+## 有类簇：简单概念，简单接口
+
 使用类簇将产生 图 1-3 (私有类为灰色) 所示类结构。
 
 ![alt cluster3](/images/blog/Clusters/cluster3.gif " Class cluster architecture applied to number classes")
@@ -29,7 +32,8 @@ tags: ObjC
 这个结构的使用者只能看到公有类， **Number**，那么如何为各个子类的分配实例呢？答案是通过抽象父类处理实例化。
 
 
-##创建实例
+## 创建实例
+
 类簇中的抽象父类必须声明创建它的私有子类实例的方法。这是父类的职责，各个子类对象基于你调用父类的创建方法来获得，你不可，也不能选择该方法创建出来的实例的类型。
 
 在 Foundation 库中，你通常会通过调用 className… 或者通过 alloc… 和 init… 方法创建对象。拿 Foundation 库的 NSNumber 做例子，你可以向 number 对象发送如下消息：
@@ -44,7 +48,8 @@ tags: ObjC
 每个返回的对象－－aChar, anInt, aFloat 和 aDouble －－可能属于不同的私有子类(实际上确实这样)。虽然，每个类的对象的类别是隐藏的，但，由于接口是由抽象父类 NSNumber 声明的，所以它们的接口是公开的。简化地认为 aChar，anInt，aFloat 和 aDouble 对象是一个 NSNumber 类别的对象，有点不太精确。实际上，它们是由 NSNumber 类的方法创建，并通过由 NSNumber 类的方法访问的。
 
 
-##有多个公开父类的类簇 
+## 有多个公开父类的类簇
+
 在上面的例子中，一个抽象公共父类为多个私有子类声明了接口。这是一个纯粹意义上的类簇。有两个或两个以上的抽象公共父类为类簇声明接口也是可能的，也经常是需要的。很明显，在 Foundation 库中，有这样的例子：
 
 
@@ -62,7 +67,8 @@ tags: ObjC
 书对象可以返回他自己的实例对象，或者创建一个新的字符串对象同时返回它－－这都没有关系。返回的字符串不可改变是清楚无疑的。所有试图改变返回对象的尝试都会引出一个编译错误。
 
 
-##在类簇中创建子类
+## 在类簇中创建子类
+
 类簇结构包含简单性和可扩展性的折衷：拥有少量公共类而隐藏了大量的私有子类，使得学习和使用库里的类更为简单，但有时创建在类簇中创建子类则更为困难了。可是，如果创建子类是一个少有的需求，那么很清楚，类簇结构是有利的。类簇被使用在 Foundation 库中，就是这种情况。
 
 如果，你找到一个类簇不能提供你需要的功能，那么可以考虑子类。例如，想象一下你需要创建一个数组对象，它的存储是基于文件而不是象 NSArray 一样基于内存的。因为你改变类存储的相关机制，你需要创建一个子类。
@@ -72,6 +78,7 @@ tags: ObjC
 总而言之，如果你需要管理你的类的存储，创建一个正真的子类。否则，创建一个组合对象，在一个你自己设计的对象中潜入一个标准 Foundation 库对象。下面两章给出关于这两种方法的更多细节。
 
 ### 一个真正子类
+
 在一个类簇中，创建新类需要：
 
 * 必须为类簇抽象父类的子类
@@ -97,6 +104,7 @@ tags: ObjC
 你地子类必须声明自己的 init… (如果它需要实例化自己的实例变量的话)，并且声明可能的 +className 方法。这并不取决于它继承了什么。为了维持实例化链的联系，它必须在自己的实例化创建器中，调用父类的默认实例化创建器。它也必须重写所有其他继承下来的实例化方法，并以合理的方法实现它们的行为([多个实例化创建器和默认实例化创建器](#https://developer.apple.com/library/ios/documentation/general/conceptual/CocoaEncyclopedia/Initialization/Initialization.html#//apple_ref/doc/uid/TP40010810-CH6-SW3) 讨论了默认实例化创建器)。在类簇中，抽象父类的默认实例化创建器总是 init。
 
 ### 真正的子类：例子
+
 让我们假设，你要创建一个 NSArray 的子类，名为 MonthArray。它可以返回给定索引位置的月份名。可是，一个 MontyArray 对象不能将一个月份名字的数组作为实例变量存储。
 
 	#import <foundation/foundation.h>
@@ -151,6 +159,7 @@ MonthArray 的实现如下：
 因为 MonthArray 重写了被继承的原始方法，它继承的衍生方法无需重写也可以正确工作。NSArray 的 lastObject，containObject:，sortedArrayUsingSelector:，objectEnumetor，和其他方法都可以为 MonthArray 对象正常工作。
 
 ### 组合对象
+
 通过在一个你设计的对象中嵌入一个私有的类簇对象，你可以创建一个组合对象。这个组合对象仅依靠类簇对象实现基本功能，组合对象截获消息后通过特殊的方发做处理。这个结构减少了你必须编写的代码量，并让你充分利用了 Foundation 库中的测试充分的代码。图 1-4 描述了这个结构。
 
 ![alt compositeobject](/images/blog/Clusters/compositeobject.gif " Class cluster architecture applied to number classes")
@@ -166,6 +175,7 @@ NSArray 的 count 方法作为例。重写函数可以简单地如下实现：
 然而，你的对象在重载方法中放入按自己目的实现的代码。	
 
 ### 组合对象：例子
+
 为了展示组合对象的适用，想象一下你要一个可变数组对象，它可以在改变数组内容时测试改变是否符合一些规则。下面的例子描述了一个名为 ValidatingArray 的类，它包含一个标准的可变数组对象。ValidatingArray 重写了所有的在父类 NSArray 和 NSMutableArray 中声明的原始方法。它也声明了 ValidatingArray 和 init 方法，用于创建和初始化实例：
 
 	#import <foundation/foundation.h>
@@ -253,9 +263,7 @@ NSArray 的 count 方法作为例。重写函数可以简单地如下实现：
     	}
 	}
 
-
-
-##来源
+## 来源
 
 ---
 
