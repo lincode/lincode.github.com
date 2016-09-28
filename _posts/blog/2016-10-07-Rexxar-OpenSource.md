@@ -1,19 +1,19 @@
 ---
 layout: post
-title: 豆瓣的混合开发实践 -- Rexxar
+title: 豆瓣的混合开发框架 -- Rexxar
 description: 最近两年，我们在移动混合开发实践方面做了一些努力。主要产出是一个名为 Rexxar 的项目。现在，我们把这个项目开源了。一方面，是为了给大家提供一些借鉴；另一方面，是为了提高这个项目的质量。接受大家的意见和建议。
 category: blog
 ---
 
 ## 背景
 
-豆瓣在2014年推出一个主应用：[豆瓣 App](https://www.douban.com/doubanapp/)。这个主应用慢慢得成长，逐渐覆盖了豆瓣在 Web 上的大部分功能。随着项目的扩大，产品线的扩展，和产品需求增长，豆瓣App 也成为一个需要提供 iOS，Android 和移动 Web 页面的多平台支持的服务。工程技术团队为了更从容地应对，开始投入较大的精力提高团队的开发效率。混合开发是其中主要的措施之一。
+豆瓣在2014年推出一个主应用：[豆瓣 App](https://www.douban.com/doubanapp/)。这个主应用慢慢成长，逐渐覆盖了豆瓣在 Web 上的大部分功能。随着项目的扩大，产品线的扩展，和产品需求增长，豆瓣App 同时成为了一个需要提供 iOS，Android 和移动 Web 页面的多平台支持的服务。工程技术团队为了更从容地应对这种状况，开始投入较大的精力提高团队的开发效率。混合开发是其中主要的措施之一。
 
 由于项目已经发展到一定程度，我们并不希望推倒以往的开发方式，也没有一切从头来的野心和勇气。只是希望在不影响 App 的性能前提下，在合适的地方使用 Web 技术部分地提高开发效率。而豆瓣 App 中又确实存在部分页面是重度展示，却轻度的交互的页面。这些页面恰恰比较适合使用 Web 技术来实现。
 
 经过团队的一些努力，App 中部分页面已经使用 Web 技术实现，并在取得了不错的效果。工程师使用 Web 技术开发的页面可以部署到两个平台，开发效率得到了实质性提高。就算不提热更新，减少 Android 项目方法数这种附带的好处，我们都已喜欢上这项技术，决定推动在豆瓣移动开发中的推动混合开发的使用。
 
-现在，我们将这个过程的主要产出：**Rexxar** 这个项目开源。一方面，是为了给大家提供一些借鉴的方向；另一方面，是为了提高这个项目的质量。我们知道还存在不少问题。所以，悉心接受大家的意见和建议。
+现在，我们将这个过程的主要产出：**Rexxar** 这个项目开源。一方面，是为了给大家提供一些借鉴的方向；另一方面，是为了提高项目本身的质量。我们知道还存在不少问题。所以，会悉心接受大家的意见和建议。
 
 ## 混合开发
 
@@ -35,11 +35,11 @@ category: blog
 
 **Rexxar** 是一个针对移动端的混合开发框架。现在支持 Android 和 iOS 平台。并有一个 Web 基础库。
 
-团队中喜欢玩魔兽的同学将我们的混合开项目命名为 Rexxar（《魔兽世界》中人物，出生于卡利姆多大陆的菲拉斯，同时具有雷骨兽人和南部菲拉斯野生食人魔血统）。
+团队中喜欢玩魔兽的同学将该项目命名为 Rexxar（《魔兽世界》中人物，出生于卡利姆多大陆的菲拉斯，同时具有雷骨兽人和南部菲拉斯野生食人魔血统）。
 
 各平台代码仓库地址：
 
-- Rexxar web：[https://www.github.com/douban/rexxar-web](https://www.github.com/douban/rexxar-web)
+- Rexxar Web：[https://www.github.com/douban/rexxar-web](https://www.github.com/douban/rexxar-web)
 - Rexxar iOS：[https://www.github.com/douban/rexxar-ios](https://www.github.com/douban/rexxar-ios)
 - Rexxar Android：[https://www.github.com/douban/rexxar-android](https://www.github.com/douban/rexxar-android)
 
