@@ -25,7 +25,7 @@ category: blog
 - 统一的浏览器内核标准，使得 Web 技术具有跨平台特性。iOS 和 Android 可以使用一套代码。
 - 可越过发布渠道自主更新应用。
 
-这些优势都和关开发效率的。Web 技术具有这些优势的原因是，Web 技术是一个开发的标准。开放的标准发展出来的庞大生态，而且这个生态从 PC 时代发展至今已积累多年，开发者可以利用生态中产出的各种成果，而省去很多重复工作。
+这些优势都和开发效率有关。Web 技术具有这些优势的原因是，Web 技术是一个开放标准。基于开放的标准发展出来的庞大生态，而且这个生态从 PC 时代发展至今已积累多年，开发者可以利用生态中产出的各种成果，而省去很多重复工作。
 
 在大型移动应用的开发中，项目代码庞杂，通常还是 iOS，Android， 移动 Web 和 桌面 Web 全平台支持。这种情况下，更高的开发效率就成为了开发者不得不考虑的问题。这也是为何虽然移动平台的 Web 技术在使用范围和性能上有诸多劣势，仍然有很多开发者付出努力探索如何在移动开发中使用 Web 技术。
 
@@ -66,14 +66,7 @@ Rexxar Route 比较简单，只需要表达一个路由表即可。我们使用�
         }, {
             remote_file: "https://img1.doubanio.com/dae/rexxar/files/related_doulists/related_doulists-1d7d99e1fb.html",
             uri: "douban://douban.com/(tag|tv|movie|book|music)/(\w+)/related_doulists[/]?.*"
-        }, {
-            remote_file: "https://img1.doubanio.com/dae/rexxar/files/selection/columns-1a4666ac89.html",
-            uri: "douban://douban.com/selection/columns[/]?.*"
-        }, {
-            remote_file: "https://img3.doubanio.com/dae/rexxar/files/seti/category_channel-2974d9257d.html",
-            uri: "douban://douban.com/seti/category_channel/(.*)[/]?.*"
         }],
-        sig: "api",
         deploy_time: "Fri, 04 Mar 2016 11:12:29 GMT
     }
 ```
@@ -82,8 +75,7 @@ Rexxar Route 比较简单，只需要表达一个路由表即可。我们使用�
 
 ### Rexxar Web
 
-Rexxar Web 是 Rexxar 前端实现。Rexxar Web 中，我们使用了 React 作为前端开发框架。
-需要指出的是，虽然 Rexxar Web 选择了 React，但是 Rexxar Container 的实现和 Rexxar Web 的实现是分离的。Rexxar Container 对 Rexxar Web 使用何种技术实现并不关心。所以，你可以选择自己的前端技术和 Rexxar Container 组合。
+Rexxar Web 是 Rexxar 前端实现。Rexxar Container 的实现和 Rexxar Web 的实现是分离的。Rexxar Container 对 Rexxar Web 使用何种技术实现并不关心。所以，你可以选择自己的前端技术和 Rexxar Container 进行组合。比如，我们在业务层选择了 React 作为前端开发框架。
 
 Rexxar Web 包括了三部分内容：
 
@@ -94,8 +86,6 @@ Rexxar Web 包括了三部分内容：
 #### 公共的前端组件
 
 - 通用的错误处理、Loading等效果；
-- 相对通用的页面初始数据的支持(不用必须经历空页面->网络加载->页面展示)；
-- 页面点击反馈效果；
 - List 的支持；
 - List 上面的操作，Android(长按)与iOS(左划)不同；
 ...
@@ -116,7 +106,7 @@ Rexxar Web 包括了三部分内容：
 
 - 纯浏览器方案：也就是 Native 除了扔给内嵌浏览器一个 url 地址之外，就没有不做任何事情了，剩余的事情都由 Web 技术完成。这和用 Safari 或 Chrome 等普通浏览器打开一个网页并没有太多区别。只是我们固定了访问的地址。
 
-- 前端模板渲染容器方案：这种方案大部分事情由 Native 完成，Web 部分只是负责页面元素的呈现，不参与页面界面之外的其他部分。我们在客户端存储了一个 HTML 作为 UI 模板。Native 代码负责获取数据，向 HTML 文件模板中填入动态数据，得到一个可以在内嵌浏览器渲染的 HTML 文件。这个过程有点类似于 Web 框架里模板渲染库（例如，ninja2）的作用。
+- 前端模板渲染容器方案：这种方案大部分事情由 Native 完成，Web 部分只是负责页面元素的呈现，不参与页面界面之外的其他部分。我们在客户端存储了一个 HTML 作为 UI 模板。Native 代码负责获取数据，向 HTML 文件模板中填入动态数据，得到一个可以在内嵌浏览器渲染的 HTML 文件。这个过程有点类似于 Web 框架里模板渲染库（例如，Jinja2）的作用。
 
 - Rexxar Container 方案：Rexxar 采用的方案介于上述两种方案之间。Rexxar Container 同样提供了一个运行前端代码的容器。它也是一个内嵌的浏览器(WebView)。只是，我们并不是扔给内嵌浏览器一个 url 地址就放手不管了，而是对内嵌浏览器包装了很多功能。
 
@@ -134,7 +124,7 @@ Rexxar Container 方案中，Container 需要实现以下功能：
 
 混合开发实践中，一般都会涉及到 Native 和 Web 如何通信的问题。这是因为我们把一件事情交给两种技术完成，那么它们之间便会存在有一些通信和协调。通常会使用 JSBridge(Android: [JsBridge](https://github.com/lzyzsd/JsBridge)，iOS：[WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge)) 来实现 Native 和 Web 的相互调用。
 
-但在 Rexxar 中，我们并没有选择这个方案。这是因为，我们试图尽量缩小 Rexxar Container 和 Rexxar Web 所需要的交互。即使有一些交互，我们都事先定义好协议。现在只支持 Rexxar Web 请求一些定义好的由 Native 实现的功能。
+但在 Rexxar 中，我选择从 Rexxar Web 发出 HTTP 请求的方式，由 Rexxar Container 截获的方式进行通信。我们试图尽量缩小 Rexxar Container 和 Rexxar Web 所需要的交互。即使有一些交互，我们都事先定义好协议。现在只支持 Rexxar Web 请求一些定义好的由 Native 实现的功能。
 
 Rexxar 中 Native 和 Web 之间协议是由 URL 定义的。Rexxar Web 访问某个特定的 URL, Rexxar Container 截获这些 URL 请求，调用 Native 代码完成相应的功能。
 
@@ -162,7 +152,7 @@ Rexxar Container 主要的工作是截获 Rexxar Web 的数据请求和原生功
 
 具体的实现可以参看两个平台的项目代码。
 
-### Rexxar 的工作流
+### Rexxar 页面执行过程
 
 ![Rexxar 工作流](/images/blog/Rexxar.png)
 
