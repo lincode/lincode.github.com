@@ -66,7 +66,7 @@ Rexxar Route 比较简单，只需要表达一个路由表即可。我们使用�
         }, {
             remote_file: "https://img1.doubanio.com/dae/rexxar/files/related_doulists/related_doulists-1d7d99e1fb.html",
             uri: "douban://douban.com/(tag|tv|movie|book|music)/(\w+)/related_doulists[/]?.*"
-        }],
+        }   ],
         deploy_time: "Fri, 04 Mar 2016 11:12:29 GMT
     }
 ```
@@ -86,8 +86,8 @@ Rexxar Web 包括了三部分内容：
 #### 公共的前端组件
 
 - 通用的错误处理、Loading等效果；
+- 页面点击反馈效果；
 - List 的支持；
-- List 上面的操作，Android(长按)与iOS(左划)不同；
 ...
 
 #### 对 Rexxar Container 实现的 Widget 的调用
@@ -124,9 +124,7 @@ Rexxar Container 方案中，Container 需要实现以下功能：
 
 混合开发实践中，一般都会涉及到 Native 和 Web 如何通信的问题。这是因为我们把一件事情交给两种技术完成，那么它们之间便会存在有一些通信和协调。通常会使用 JSBridge(Android: [JsBridge](https://github.com/lzyzsd/JsBridge)，iOS：[WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge)) 来实现 Native 和 Web 的相互调用。
 
-但在 Rexxar 中，我选择从 Rexxar Web 发出 HTTP 请求的方式，由 Rexxar Container 截获的方式进行通信。我们试图尽量缩小 Rexxar Container 和 Rexxar Web 所需要的交互。即使有一些交互，我们都事先定义好协议。现在只支持 Rexxar Web 请求一些定义好的由 Native 实现的功能。
-
-Rexxar 中 Native 和 Web 之间协议是由 URL 定义的。Rexxar Web 访问某个特定的 URL, Rexxar Container 截获这些 URL 请求，调用 Native 代码完成相应的功能。
+但在 Rexxar 中，我没有使用类似 JsBridge 这样的方案。而是从 Rexxar Web 发出 HTTP 请求的方式，由 Rexxar Container 截获的方式进行通信。Native 和 Web 之间协议是由 URL 定义的。Rexxar Web 访问某个特定的 URL, Rexxar Container 截获这些 URL 请求，调用 Native 代码完成相应的功能。
 
 例如，Rexxar 中 UI 相关的功能的协议如下：
 
@@ -146,7 +144,7 @@ Rexxar Container 主要的工作是截获 Rexxar Web 的数据请求和原生功
 - Widget: 调用某些原生 UI 组件。例如，调起一个 Toast。
 - ContainerAPI：要么给出一个 Native 的计算结果。例如，给出当前位置信息。
 
-这三种接口都是由 Rexxar Web 发起某种形式的 URL 调用的。这样，Rexxar Web 的业务代码在 App 的 Rexxar Container 内工作方式，就和在普通浏览器里差别不大。代码都是标准 Web 式的，没有为原生移动开发做太多定制。可以顺利移植到 Web 平台，在各种浏览器中都可以正确运行。以 URL 作为协议，也为 Web 和 Native 划定了清晰的边界，和数据传递方式。
+这三种接口都是由 Rexxar Web 发起某种形式的 URL 调用的。这样，Rexxar Web 的业务代码在 App 的 Rexxar Container 内工作方式，就和在普通浏览器里差别不大。我们只是在 Web 技术的基础上做了一些拓展，保留了大部分 Web 原有的编写和运行方式。代码都是标准 Web 式的，没有为原生移动开发做太多定制。可以顺利移植到 Web 平台，在各种浏览器中都可以正确运行。以 URL 作为协议，也为 Web 和 Native 划定了清晰的边界，和数据传递方式。
 
 我们为 iOS 和 Android 各开发了一个 Rexxar Container。iOS 和 Android 平台截获请求的方式由于平台差异并不完全相同。但本质上都是在 Web 和 Native 之间实现了一个 Proxy。Web 发出的请求会被 Proxy 预先处理。要么是修改后再发出去，要么是由 Rexxar Container 自己处理。
 
