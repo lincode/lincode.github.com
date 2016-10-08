@@ -39,9 +39,9 @@ category: blog
 
 各平台代码仓库地址：
 
-- Rexxar Web：[https://www.github.com/douban/rexxar-web](https://www.github.com/douban/rexxar-web)
-- Rexxar iOS：[https://www.github.com/douban/rexxar-ios](https://www.github.com/douban/rexxar-ios)
-- Rexxar Android：[https://www.github.com/douban/rexxar-android](https://www.github.com/douban/rexxar-android)
+- Rexxar Web：[https://github.com/douban/rexxar-web](https://github.com/douban/rexxar-web)
+- Rexxar iOS：[https://github.com/douban/rexxar-ios](https://github.com/douban/rexxar-ios)
+- Rexxar Android：[https://github.com/douban/rexxar-android](https://github.com/douban/rexxar-android)
 
 Rexxar 主要由以下三部分组成：
 
