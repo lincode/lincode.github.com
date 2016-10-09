@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 双面娇爷：李登辉
+title: 李登辉
 category: opinion
 description: 李登辉复杂的背景，使得他时常呈现出两面性。由于其任内主推民主改革，被美国《时代》杂志称为“民主先生”，泛绿媒体一度称他为“台湾之父”。
 ---
