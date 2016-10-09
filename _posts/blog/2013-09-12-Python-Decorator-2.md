@@ -2,7 +2,7 @@
 layout:    post
 title:     Python 装饰器参数（二）
 category:  blog
-description: 当向装饰器传入参数后，装饰器的行为有了巨大变化
+description: 当向装饰器传入参数后，装饰器的行为有了巨大变化。
 tags: Python
 ---
 

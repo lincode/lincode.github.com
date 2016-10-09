@@ -2,7 +2,7 @@
 layout:    post
 title:     类簇 Class Clusters
 category:  blog
-description: Objective-C 的一种设计模式：类簇
+description: Objective-C 的一种设计模式：类簇。
 tags: ObjC
 ---
 

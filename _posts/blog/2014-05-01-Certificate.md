@@ -2,7 +2,7 @@
 layout:    post
 title:     iOS 开发中的证书和钥匙
 category:  blog
-description: iOS 开发中的证书和钥匙
+description: iOS 开发中的证书和钥匙。
 tags: iOS
 ---
 

@@ -2,7 +2,7 @@
 layout:    post
 title:     从 C++ 到 Objective-C
 category:  blog
-description: 《From C++ to Objective-C》中文版试译
+description: 《From C++ to Objective-C》中文版试译。
 tags: ObjC
 ---
 
