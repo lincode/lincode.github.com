@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 浅谈闭包－以Swift为例
+title: 浅谈闭包－以 Swift 为例
 description: “Swift 的编程范式” 之九：本文讨论闭包的相关概念，大部分代码使用Swift编写。Swift对闭包有着良好的支持。这是因为，Swift被设计成一门一定程度上支持函数式编程范式的编程语言。而函数式编程和闭包有着紧密的联系。本文着重讨论的也是函数式编程和闭包之间的关系。
 category: blog
 ---
