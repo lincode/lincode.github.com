@@ -10,8 +10,6 @@ description: Rexxar 是一个针对移动端的混合开发框架。
 
 Rexxar 包含三个库：
 
-- Rexxar Web ：[https://github.com/douban/rexxar-web](https://github.com/douban/rexxar-web)。
-
+- Rexxar Web：[https://github.com/douban/rexxar-web](https://github.com/douban/rexxar-web)。
 - Rexxar Android：[https://github.com/douban/rexxar-android](https://github.com/douban/rexxar-android)。
-
 - Rexxar iOS：[https://github.com/douban/rexxar-ios](https://github.com/douban/rexxar-ios)。
