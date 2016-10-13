@@ -10,4 +10,4 @@ iPhone 5 的屏幕变长了，可以多看一行图标了，但也使得原本�
 
 添加一个回退手势是一个解决这个问题的方案。
 
-项目地址：[PanGeusture](https://github.com/lincode/PanGestureBack)
+项目地址：[PanGeusture](https://github.com/lincode/PanGestureBack)。
