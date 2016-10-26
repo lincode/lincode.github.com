@@ -157,15 +157,15 @@ Rexxar Container 主要的工作是截获 Rexxar Web 的数据请求和原生功
 
 1. 根据 URL 查询本机缓存的路由表 routes.json，看是否能够找到对应的资源记录(一般是一个 HTML 文件)。如果找到不到，请求 Rexxar Route 服务，获得最新的全量路由表 routes.json，更新本地缓存，找到对应的资源记录；
 
-2. 根据路由表指示的 HTML 文件的路径，看本地是否找到对应的文件。如果找不到，请求 Rexxar Web 资源服务器，更新本地缓存；
+2. 根据路由表指示的 HTML 文件的路径，看本地是否找到对应的文件。如果找不到，请求 Rexxar Web 资源服务器，更新本地缓存；在 Rexxar Container 里展示该 HTML 文件；如有需要，会在 Container 中请求图片资源，图片资源也有缓存，Rexxar Container 会先检查本地缓存。如不存在，会请求 CDN 的图片或者图片服务器；
 
-3. 在 Rexxar Container 里展示该 HTML 文件；如有需要，会在 Container 中请求图片资源，图片资源也有缓存，Rexxar Container 会先检查本地缓存。如不存在，会请求 CDN 的图片或者图片服务器；
+3. Rexxar Web 前端代码在 Container 里继续执行，发出 API 请求。Rexxar Container 代理这些请求，为 API 请求添加 OAuth 验证，或增加某些参数；
 
-4. Rexxar Web 前端代码在 Container 里继续执行，发出 API 请求。Rexxar Container 代理这些请求，为 API 请求添加 OAuth 验证；
+4. Rexxar Web 前端代码继续执行，根据 API 返回的结果，展示响应的页面，可能会请求 CDN 的图片或者图片服务器等；
 
-5. Rexxar Web 前端代码继续执行，根据 API 返回的结果，展示响应的页面，可能会请求 CDN 的图片或者图片服务器等；
+5. Rexxar Web 前端代码继续执行，如果需要修改 NavigationBar 等原生界面，可能通过定义好的协议请求 URL： douban://rexxar.douban.com；
 
-6. Rexxar Web 前端代码继续执行，如果需要修改 NavigationBar 等原生界面，可能通过定义好的协议请求 URL： douban://rexxar.douban.com。Rexxar Container 拦截请求，按定义好的协议作出反应。例如，修改 NavigationBar 上的按钮。
+6. Rexxar Container 拦截请求，按定义好的协议作出反应。例如，修改 NavigationBar 上的按钮。如果需要，会向 Rexxar Web 回调约定好的 Javascript 函数。
 
 ## Rexxar 的问题
 
