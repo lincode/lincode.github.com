@@ -2,12 +2,12 @@
 layout: post
 title: Japan Town in San Francisco
 category: opinion
-description: 王叔叔是一位哲学博士，现在的职业是翻译和作家。他有一辆白色夏利小车。据他说车开了4年了，看着像有10年车龄。
+description: 日本城是旧金山相对安全的一个区。所以，便将 WWDC 2016 期间住的旅店订在这儿。在旧金山待了一个礼拜。渐渐发现旧金山的日本城是一个有趣的地方。
 ---
 
 ## Japan Town
 
-了解到日本城是旧金山相对安全的一个区。便将旅店订在这儿。在旧金山待了一个礼拜。渐渐发现旧金山的日本城是一个有趣的地方。
+日本城是旧金山相对安全的一个区。所以，便将 WWDC 2016 期间住的旅店订在这儿。在旧金山待了一个礼拜。渐渐发现旧金山的日本城是一个有趣的地方。
 
 ![JapanTown](/images/opinion/JapanTown/1.jpg)
 
