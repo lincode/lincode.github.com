@@ -1,11 +1,11 @@
 ---
 layout: post
-title: Japan Town in San Francisco
+title: Japantown in San Francisco
 category: opinion
 description: 日本城是旧金山相对安全的一个区。所以，便将 WWDC 2016 期间住的旅店订在这儿。在旧金山待了一个礼拜。渐渐发现旧金山的日本城是一个有趣的地方。
 ---
 
-## Japan Town
+## Japantown
 
 日本城是旧金山相对安全的一个区。所以，便将 WWDC 2016 期间住的旅店订在这儿。在旧金山待了一个礼拜。渐渐发现旧金山的日本城是一个有趣的地方。
 

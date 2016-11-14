@@ -40,7 +40,7 @@ SecondViewController *secondViewController = [[SecondViewController alloc] init]
 
 ### URL Routes
 
-为了更便捷地使用 UIApplicationDelegate 的这个钩子方法。iOS 社区中还涌现了很多 URL Routes 项目，例如, `JLRoutes`(https://github.com/joeldev/JLRoutes)。这些 URL routes 项目大致都提供了两类功能：
+为了更便捷地使用 UIApplicationDelegate 的这个钩子方法。iOS 社区中还涌现了很多 URL Routes 项目，例如, [JLRoutes](https://github.com/joeldev/JLRoutes)。这些 URL routes 项目大致都提供了两类功能：
 
 - 对 URL 的模式匹配，使得使用者可以更便捷地归类 URL 和提取 URL 中的参数。
 - 提供了闭包注册 URL 的功能。注册之后，任何应用调用 URL，则会调用对应闭包。
@@ -51,7 +51,7 @@ SecondViewController *secondViewController = [[SecondViewController alloc] init]
 - 调用时，并不用直接初始化 view controller，而是调用一个 URL。
 - UIApplicationDelegate `openURL` 钩子方法将被调用。在钩子方法中对注册形成的 URL 到 block 之间的映射关系表进行查询。找到对应的 block，并执行它。block 中的代码应该完成这样的功能：对目标页面的初始化，并将其推入前台。
 
-也有直接为你提供将 view controller 注册到 URL 功能的库。比如`HHRouter`(https://github.com/Huohua/HHRouter)。这种库的目的就更为直接，仅用于页面调用。
+也有直接为你提供将 view controller 注册到 URL 功能的库。比如，[HHRouter](https://github.com/Huohua/HHRouter)。这种库的目的就更为直接，仅用于页面调用。
 
 ### 问题
 
@@ -69,7 +69,7 @@ SecondViewController *secondViewController = [[SecondViewController alloc] init]
 
 ### 应用内页面调用：FRDIntent/Intent
 
-`FRDIntent`(https://github.com/douban/FRDIntent) 是一个用于解决应用内应用外页面调用的库。FRDIntent 也是该库中一个重要对象的名字，它是一个消息对象，用于启动 UIViewController。这是对 Android 系统中的 Intent 的模仿。当然，相对于 Android Intent，FRDIntent/Intent 做了极度简化。这是因为 FRDIntent/Intent 的使用场景更为简单：只处理应用内的 view controller 间跳转。
+[FRDIntent](https://github.com/douban/FRDIntent) 是一个用于解决应用内应用外页面调用的库。FRDIntent 也是该库中一个重要对象的名字，它是一个消息对象，用于启动 UIViewController。这是对 Android 系统中的 Intent 的模仿。当然，相对于 Android Intent，FRDIntent/Intent 做了极度简化。这是因为 FRDIntent/Intent 的使用场景更为简单：只处理应用内的 view controller 间跳转。
 
 在 `FRDIntent` 库中，使用一个名为 FRDIntent 的对象传递消息。这是整个库的核心类，所以库的名字也是用这个类命名的。和 URL 相比，应用内部使用对象表达信息更为直接和便利。由此，带了 `FRDIntent` 的诸多优势：
 
@@ -98,6 +98,6 @@ FRDIntent 较基于 openURL 钩子方法的一些 URL Routers 不同之处在于
 
 ## 相关项目仓库
 
-- FRDIntent: https://github.com/douban/FRDIntent
-- JLRoutes: https://github.com/joeldev/JLRoutes
-- HHRouter: https://github.com/Huohua/HHRouter
+- [FRDIntent](https://github.com/douban/FRDIntent)
+- [JLRoutes](https://github.com/joeldev/JLRoutes)
+- [HHRouter](https://github.com/Huohua/HHRouter)
