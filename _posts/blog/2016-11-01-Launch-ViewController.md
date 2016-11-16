@@ -1,11 +1,11 @@
 ---
 layout: post
 title: iOS 中的 view controller 调用方案
-description: 聊一聊 iOS 中的 view controller 调用方案。比较和介绍 FRDIntent 与各种 URL Router 相比的不同和解决的问题。
+description: iOS 开发中有几种页面调用方案。这篇文章中，我们聊一聊 iOS 中的 view controller 调用方案。简单分析一下它们的实现原理与存在的问题。最后会介绍一下 FRDIntent，一种借鉴了 Android Intent 的页面调用方案。
 category: blog
 ---
 
-iOS 开发中有一些页面调用方案。
+iOS 开发中有几种页面调用方案。这篇文章中，我们聊一聊 iOS 中的 view controller 调用方案。简单分析一下它们的实现原理与存在的问题。最后会介绍一下 FRDIntent，一种借鉴了 Android Intent 的页面调用方案。
 
 ## iOS 系统方案
 
