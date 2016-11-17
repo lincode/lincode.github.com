@@ -1,11 +1,11 @@
 ---
 layout: post
-title: iOS 中的 view controller 调用方案
+title: iOS 中的页面调用方案
 description: iOS 开发中有几种页面调用方案。这篇文章中，我们聊一聊 iOS 中的 view controller 调用方案。简单分析一下它们的实现原理与存在的问题。最后会介绍一下 FRDIntent，一种借鉴了 Android Intent 的页面调用方案。
 category: blog
 ---
 
-iOS 开发中有几种页面调用方案。这篇文章中，我们聊一聊 iOS 中的 view controller 调用方案。简单分析一下它们的实现原理与存在的问题。最后会介绍一下 FRDIntent，一种借鉴了 Android Intent 的页面调用方案。
+iOS 开发中有几种页面调用方案。这篇文章中，我们聊一聊 iOS 中的页面调用方案。简单分析一下它们的实现原理与存在的问题。最后会介绍一下 FRDIntent，一种借鉴了 Android Intent 的页面调用方案。
 
 ## iOS 系统方案
 
@@ -63,6 +63,18 @@ SecondViewController *secondViewController = [[SecondViewController alloc] init]
 
 这两个缺陷都是由于对 openURL 钩子方法的理解不当。openURL 钩子方法被设计用于在应用之间进行通信。如果，将其用于应用内部的通信，我们就需要问一下这个 API 是否还适用呢？起码，在我们的项目实践中发现，仅仅用 URL 协议在应用内部通信的话，会感觉受到限制。
 
+## 依赖注入容器
+
+如果只是希望解除页面间的耦合。还有一类解耦方法更为普遍。就是间接地获取目标页面对象。如果，能在不依赖具体类的情况下获取目标页面的对象，那么如何调起该页面就简单了。
+
+这种可能的解决方案是类似于 Java 社区中常用到的`依赖注入容器`。例如，[Spring](https://projects.spring.io/spring-framework/) 就是一个著名的`依赖注入容器`。引入`依赖注入容器`之后，可以动态地创建对象，并为对象注入依赖。而所有依赖都在容器中注册，业务对象只需要依赖接口，而无需依赖具体的类型。这是一种通用的解耦方法。适用于几乎所有的依赖管理场景。
+
+这样的库有：[typhoon](http://typhoonframework.org/)。
+
+### 问题
+
+但这种方案有一定复杂性。使用`依赖注入容器`意味着项目中很多对象的创建都需要交托给容器。这对于整个项目的代码运作方式做了很大的改变。对于这类基础性的改变，需要慎重考虑。而且我们对于在移动平台中，找到或者自己实现这样的一个坚实的基础容器也并不乐观。
+
 ## FRDIntent
 
 由于 URL Routes 存在一些使用上的不便和问题，我们试图寻找另外的解决方案。Android 系统给出了一个不错的方案。Android 的 Intent 是一个消息对象，可用于调起代表页面的 Activity 和代表服务的 Service。并且 Android 的 Intent 还是一个系统的级的消息对象。可以用于调起第三方应用，或者系统级的页面或者服务。
@@ -98,6 +110,7 @@ FRDIntent 较基于 openURL 钩子方法的一些 URL Routers 不同之处在于
 
 ## 相关项目仓库
 
-- [FRDIntent](https://github.com/douban/FRDIntent)
 - [JLRoutes](https://github.com/joeldev/JLRoutes)
 - [HHRouter](https://github.com/Huohua/HHRouter)
+- [typhoon](http://typhoonframework.org/)
+- [FRDIntent](https://github.com/douban/FRDIntent)
