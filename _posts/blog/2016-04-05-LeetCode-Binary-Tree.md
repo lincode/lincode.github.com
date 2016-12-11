@@ -46,11 +46,11 @@ category: blog
 
 二叉树的遍历可以分为两种方式：深度优先，和广度优先。
 
-### 深度优先
+### 深度优先遍历 Depth First Traversal
 
 深度优先，可以分为先序遍历，中序遍历和后序遍历三种。
 
-#### 先序
+#### 先序 Preorder Traversal
 
 先序遍历过程可以描述为：
 
@@ -63,18 +63,20 @@ category: blog
 先序遍历遍历过程的描述其实是一个递归过程。可以直观地写成如下代码：
 
     func preorderTraversalRecursive(root: TreeNode?) {
-      if let root = root {
-        print(root.val) // visit root node
-        let left = preorderTraversalRecursive(root.left) // recursively visit left subtree
-        let right = preorderTraversalRecursive(root.right) // recursively visit right subtree
+      guard let root = root else {
+        return 
       }
+      
+      print(root.val) // visit root node
+      let left = preorderTraversalRecursive(root.left) // recursively visit left subtree
+      let right = preorderTraversalRecursive(root.right) // recursively visit right subtree
     }
 
 ##### 迭代实现
 
-如果不使用递归，可以使用迭代。利用 Swift 的 GeneratorType 将迭代过程提出来成为一个 Generator，这样就达到了代码复用的目的，在不同的地方可以方便地进行树的遍历。每次对 Generator 调用 `next()` 将返回一个待访问的节点。这里需要借助一个辅助的数据结构：栈(Stack) 来实现迭代过程。
+如果不使用递归，可以使用迭代。利用 Swift 的 IteratorProtocol 将迭代过程提出来成为一个 Iterator，这样就达到了代码复用的目的，在不同的地方可以方便地进行树的遍历。每次对 Iterator 调用 `next()` 将返回一个待访问的节点。这里需要借助一个辅助的数据结构：栈(Stack) 来实现迭代过程。
 
-    public class BinaryTreePreorderTravesalGenerator: GeneratorType {
+    public class BinaryTreePreorderTravesalIterator: IteratorProtocol {
 
       var stack = Stack<TreeNode>()
 
@@ -116,12 +118,12 @@ category: blog
 
     tree.map { $0 }
 
-你只需要使用 extension 为树扩展 SequenceType 协议：
+你只需要使用 extension 为树扩展 Sequence 协议：
 
-    extension TreeNode: SequenceType {
+    extension TreeNode: Sequence {
 
-      public func generate() -> BinaryTreePreorderTravesalGenerator {
-        return BinaryTreePreorderTravesalGenerator(root: self)
+      public func makeIterator() -> BinaryTreePreorderTravesalIterator {
+        return BinaryTreePreorderTravesalIterator(root: self)
       }
 
     }
@@ -184,7 +186,7 @@ Morris 遍历的步骤：
 
 完整的代码可以参考：[144. Binary Tree Preorder Traversal](https://github.com/lincode/LeetCode-Swift/blob/master/LeetCode-Swift/LeetCode-Swift/Solution/Medium/BinaryTreePreorderTraversal_M144.swift)。
 
-#### 中序
+#### 中序 Inorder
 
 中序遍历过程：
 
@@ -196,7 +198,7 @@ Morris 遍历的步骤：
 
 完整的代码可以参考：[94. Binary Tree Inorder Traversal](https://github.com/lincode/LeetCode-Swift/blob/master/LeetCode-Swift/LeetCode-Swift/Solution/Medium/BinaryTreeInorderTraversal_M94.swift)。
 
-#### 后序
+#### 后序 Postorder
 
 后序遍历过程：
 
@@ -208,14 +210,15 @@ Morris 遍历的步骤：
 
 完整的代码可以参考：[144. Binary Tree Postorder Traversal](https://github.com/lincode/LeetCode-Swift/blob/master/LeetCode-Swift/LeetCode-Swift/Solution/Hard/BinaryTreePostorderTraversal_H145.swift)。
 
-### 广度优先遍历
+### 广度优先遍历 Breadth First Traversal
 
-广度优先遍历又称为层次遍历，即优先访问离根节点最近的节点。广度优先遍历需要借助队列作为辅助的数据结构。这里给出广度优先遍历的 Generator 代码。每次调用 `next()` 都会以数组形式返回一个层次的节点值。
+广度优先遍历又称为层次遍历，即优先访问离根节点最近的节点。广度优先遍历需要借助队列作为辅助的数据结构。这里给出广度优先遍历的 Iterator 代码。每次调用 `next()` 都会以数组形式返回一个层次的节点值。
 
+```
+    public class BinaryTreeLevelOrderIterator: IteratorProtocol {
 
-    public class BinaryTreeLevelOrderGenerator: GeneratorType {
+      typealias QueueType = Queue<TreeNode>
 
-        typealias QueueType = Queue<TreeNode>
       private var queue: QueueType
 
       public typealias Element = [Int]
@@ -254,6 +257,7 @@ Morris 遍历的步骤：
       }
 
     }
+```
 
 完整的代码可以参考：[102. Binary Tree Level Order Traversak](https://github.com/lincode/LeetCode-Swift/blob/master/LeetCode-Swift/LeetCode-Swift/Solution/Easy/BinaryTreeLevelOrderTraversal_E102.swift)
 

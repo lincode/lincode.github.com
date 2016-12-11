@@ -64,3 +64,4 @@ Rexxar在客户端的实现其实就是一个定制了更多功能的WebView。�
 - [豆瓣音乐人app的PhoneGap实践](http://www.infoq.com/cn/news/2013/10/douban-artist-PhoneGap-practice)
 - [豆瓣App的模块化实践](http://lincode.github.io/Modularity)
 - [豆瓣的混合开发框架Rexxar](http://lincode.github.io/Rexxar-OpenSource)
+- [Rexxar：豆瓣对混合开发的思考](https://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=2651112909&idx=1&sn=cf3949b08f602e40e7125b0a4b5b184c)
