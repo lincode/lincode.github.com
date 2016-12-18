@@ -215,48 +215,39 @@ Morris 遍历的步骤：
 广度优先遍历又称为层次遍历，即优先访问离根节点最近的节点。广度优先遍历需要借助队列作为辅助的数据结构。这里给出广度优先遍历的 Iterator 代码。每次调用 `next()` 都会以数组形式返回一个层次的节点值。
 
 ```
-    public class BinaryTreeLevelOrderIterator: IteratorProtocol {
+  public struct BinaryTreeBFSIterator: IteratorProtocol {
 
-      typealias QueueType = Queue<TreeNode>
+    public typealias Element = TreeNode
 
-      private var queue: QueueType
+    private var queue: Queue<Element>
 
-      public typealias Element = [Int]
-
-      init(root: TreeNode) {
-        queue = QueueType()
-        queue.push(root)
-      }
-
-      private func hasNext() -> Bool {
-        return !self.queue.empty()
-      }
-
-      public func next() -> Element? {
-        var result: Element = []
-        var queueNext = QueueType()
-
-        if !hasNext() {
-          return nil
-        }
-
-        for node in queue {
-
-          if let right = node.right {
-            queueNext.push(right)
-          }
-
-          if let left = node.left {
-            queueNext.push(left)
-          }
-
-          result.insert(node.val, atIndex: 0)
-        }
-        queue = queueNext
-        return result
-      }
-
+    init(root: Element) {
+      queue = Queue<Element>()
+      queue.enqueue(item: root)
     }
+
+    public func hasNext() -> Bool {
+      return !queue.isEmpty
+    }
+
+    public mutating func next() -> Element? {
+
+      if !queue.isEmpty {
+        let node = queue.dequeue()!
+        if let left = node.left {
+          queue.enqueue(item: left)
+        }
+
+        if let right = node.right {
+          queue.enqueue(item: right)
+        }
+        return node
+      }
+
+      return nil
+    }
+
+  }
 ```
 
 完整的代码可以参考：[102. Binary Tree Level Order Traversak](https://github.com/lincode/LeetCode-Swift/blob/master/LeetCode-Swift/LeetCode-Swift/Solution/Easy/BinaryTreeLevelOrderTraversal_E102.swift)
