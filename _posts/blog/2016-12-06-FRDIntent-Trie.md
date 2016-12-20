@@ -62,7 +62,7 @@ category: blog
 最后提了这个 [PR: Extract the data structure of Trie](https://github.com/douban/FRDIntent/pull/19/)，包括了这些内容：
 
 - 把 Trie 这个数据结构提炼了出来；
-- 将基础数据结构 [Trie](https://github.com/douban/FRDIntent/blob/master/FRDIntent/Source/Core/Trie.swift) 和业务上对基础数据结构的封装使用 [RouteManager](https://github.com/douban/FRDIntent/blob/master/FRDIntent/Source/Core/RouteManager.swift) 做了明晰的分隔。
+- 将基础数据结构 Trie (https://github.com/douban/FRDIntent/blob/master/FRDIntent/Source/Core/Trie.swift) 和业务上对基础数据结构的封装使用 RouteManager (https://github.com/douban/FRDIntent/blob/master/FRDIntent/Source/Core/RouteManager.swift) 做了明晰的分隔。
 
 改完之后，我发现代码确实清晰简洁了不少。
 
