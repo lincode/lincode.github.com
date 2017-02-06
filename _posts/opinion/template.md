@@ -1,35 +1,6 @@
 ---
 layout: post
-title: Sugar Man
+title: 算法制胜，会心一击
 category: opinion
-description: 王叔叔是一位哲学博士，现在的职业是翻译和作家。他有一辆白色夏利小车。据他说车开了4年了，看着像有10年车龄。
+description: 如果你是一位美女，面容姣好，身材高挑，在京有房，工作体面，从容优雅，众人追慕，总之就是婚恋市场的抢手货，你妈妈肯定不需要去朝阳公园摆地摊。那么，你会如何选择自己的结婚对象呢？是和初恋走入婚姻殿堂？还是等着骑白马的王子直到剩龄？是听从某个早晨冥想之后脑海里蹦出来那个名字？还是遵从你姥姥托梦为你指定的孙婿？
 ---
-
-王叔叔是一位哲学博士，现在的职业是翻译和作家。他有一辆白色夏利小车。据他说车开了4年了，看着像有10年车龄。打开冷气的前5分钟一直会是热风。车窗有时可以升上去，却降不下来。行驶时底盘有时会传来咯吱咯吱的异响。车内也似乎从来没有洗过，满是灰尘，时常能在座位上下找到喝了一半的水瓶。虽然有些破旧，我有时候会觉得自己挺喜欢坐上这辆车时的那种历史感。
-
-我们几个朋友常搭他的车去北六环的一个偏僻的足球场踢比赛。有一次，他迟到了一会。载上我之后，他抱歉地说，好不容易找到一个音像店，就买了几本碟子，耽搁了几分钟。然后，在去球场的路上，我听到了 Rodriguez 的这首 《Sugar Man》。之后几个月直到现在，在他在车里放的都是 Rodriguez 的专辑：《Cold Fact》。有时是 《Sugar Man》 的单曲循环。
-
-Rodriguez 发行过两张专辑《Cold Fact》与《Coming From Reality》，他的歌应该可以被归入 American Folk Music。大部分歌曲的背景是美国60年代底特律衰败之后的城市阴暗生活。专辑在美国没有任何反响。此后，Rodriguez 被唱片公司抛弃，干起了装修屋顶的体力活。但是他并不知道他的专辑在南非有超过50万的销量，知名度可与滚石乐队相提并论。除了两张专辑，南非的歌迷得不到任何一点关于罗德里格斯的信息。直到南非一家唱片店的老板和一位音乐记者开始寻找 Rodriguez。这正是奥斯卡获奖纪录片《Searching for Sugar Man》描述的故事。很多人也是通过这部片子了解到 Rodriguez。这部纪录片很不错。画面和 Rodriguez 音乐融合得很好，很多片段就像是 MV 一般天衣无缝，却仍然真实自然。
-
-听了几个月，我发现自己很喜欢：《Sugar Man》 和 《Cause》。
-
-《Sugar Man》是 《Cold Fact》里的一首歌。Sugar Man 是毒品贩子的代称。歌词中毒品的名字都起得很：Silver Majik Ships, Jumpers, Coke, Sweet MaryJane。歌曲曲调却柔美淡然。通过他的歌，阴暗破败罪恶都呈现出某种美感。这种阴暗和柔美的反差，让他的歌具有了诗意。
-
-《Cause》是《Coming From Reality》里的一首歌，是一首悲伤的歌：
-
-Cause I lost my job two weeks before Christmas
-And I talked to Jesus at the sewer
-And the Pope said it was none of his God-damned business
-While the rain drank champagne
-
-圣诞节前两周，我丢了工作
-我在下水道里向耶稣祷告
-神父说不关他的事
-此时雨如香槟
-
-但这种悲伤带着诗意。对于我这种英语并非母语的人，仍然能看到歌声中萦绕的这种诗意美。
-
-不得不说 Rodriguez 的歌很适合在王叔叔的车里听。很多次坐在王叔叔破旧的小车上，迎着热风，听着音乐，我们谈论一些有趣的话题：足球，音乐，文学，哲学等等。虽然有点热，但都还是很愉快的。记得有一次，王叔叔抽着烟说：Rodriguez 有一些悲剧色彩，他的音乐现在才为人所知，但他已经老了，留个他的时间已不多了。不过，这也是一种幸运。历史上，有很多有才华的人永远被人遗忘，或者生后才为人们所接受。起码现在，他还可以享受他的音乐。
-
-电影 Searching for Sugar Man：https://movie.douban.com/subject/7015798/
-专辑 Cold Fact: https://music.douban.com/subject/11531405/
