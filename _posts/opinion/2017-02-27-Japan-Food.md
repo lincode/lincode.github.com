@@ -14,12 +14,11 @@ description: 日本滑雪场虽然普遍比较小，但却有两个很可人的�
 主角是荞麦面。一竹筛荞麦面端上来时，仍有热水汆过的余温，黄绿色的面条上撒了海苔。吃法比较讲究：几根葱蒜丝，一点绿芥末，一堆白萝卜泥，浇上特制的酱汁。取荞麦面沾酱汁吃。配上金黄色的荞麦茶，味道清香悠远。长野是荞麦面的故乡。这家店又是荞麦面专门店。我想以后应该不会很多机会吃到这样的荞麦面了。所以，倍加珍惜这次经历，希望自己能记住荞麦面在口中感觉。
 
 ![Japan Food](/images/opinion/JapanFood/soba-restaurant.JPG)
-![Japan Food](/images/opinion/JapanFood/soba-restaurant-2.JPG)
 ![Japan Food](/images/opinion/JapanFood/soba-food.JPG)
 ![Japan Food](/images/opinion/JapanFood/soba.JPG)
 ![Japan Food](/images/opinion/JapanFood/soba-2.JPG)
 
-## 长野白马村的日式火锅
+## 长野白马村日式火锅
 
 滑了一天雪，晚上几个朋友一同外出找吃的。这家店昏黄的灯光，和菊花店标吸引了我们。走进一看，传统日餐馆，旧日式装修，左右一大一小两张榻榻米，不到十张案几，蓝色坐垫。白发老板在吧台后异常严肃，年轻小店员的跑过来，引我们上榻榻米。我们屋角围坐，点了蔬菜锅，海鲜锅，寿司盘，刺身，两盘沙拉，炸鸡块，猪排，一大瓶月桂冠，一大杯麒麟扎啤。一行六人，点了这些菜，小店员说不用再点了。如果是在中国我可能还会再来一两道菜，但是日本小哥既然这么说，就停住了。同行的在日本待了很长时间的朋友跟我们解释：“日本资源匮乏，国民都比较节省。吃饭一定会吃完，不会浪费。所以，点餐会刚好，甚至少点。刚去中国的日本客户见到热情好客的中国主人点了一桌菜，面面相觑，硬着头皮吃光了。中国人一看没菜了，马上加菜。日本人勉为其难地吃完了加的菜。最后实在不行了，阻止了中国人再次加菜的企图。” 我们吃到一半，餐厅渐渐坐满了。一家人，一人一碗鳗鱼饭。几个老朋友，一人一碗海鲜定食。他们点的菜确实都不多。
 
@@ -28,15 +27,12 @@ description: 日本滑雪场虽然普遍比较小，但却有两个很可人的�
 ![Japan Food](/images/opinion/JapanFood/rakuba-restaurant.JPG)
 ![Japan Food](/images/opinion/JapanFood/rakuba-restaurant-2.JPG)
 ![Japan Food](/images/opinion/JapanFood/rakuba-food.JPG)
-![Japan Food](/images/opinion/JapanFood/rakuba-saki.JPG)
-![Japan Food](/images/opinion/JapanFood/rakuba-hotpot.JPG)
 
 ## 东京秋葉原磯丸水産
 
 来到东京的第一晚，一改长野清新风，找了一家可以大块吃肉，大口喝酒的店。这家磯丸水産类似北京的木屋烧烤，只需把木屋烧烤里的肉都换成海鲜即可。在这里，我第一见到这么大份的海鲜饭，而且还带了一条蒲烧鳗鱼。惊人的是还很新鲜，很好吃。所以，我只好再要了一份三文鱼盖饭，过了足了海鲜饭的瘾。桌子中间架上一个小小的烤炉，各种食材就放在上面烤。那天晚上，大家一直喝着啤酒，聊着天，笑声不断。来这里的日本人都是年轻人，衣饰化妆风格比较出位。他们大声说话聊天，抽烟喝酒，氛围轻松。到了半夜，已经微醉，看着这个景象，就像回到了夏日武汉街边的大排档。
 
 ![Japan Food](/images/opinion/JapanFood/jiwan-restaurant.JPG)
-![Japan Food](/images/opinion/JapanFood/jiwan-restaurant-2.JPG)
 ![Japan Food](/images/opinion/JapanFood/jiwan-seafooddon.JPG)
 ![Japan Food](/images/opinion/JapanFood/jiwan-food.JPG)
 
