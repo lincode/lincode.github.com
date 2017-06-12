@@ -152,6 +152,7 @@ su27也需要做相同事情。来保证su27在输的情况下也会支付赌资
 - 去中心化的公平游戏系统还不存在，理论上可以实现，但仍然存在技术上的难点。
 
 所以，如果我们只考虑纯技术问题，认为提高 Data Feeds 的可信度是一个`社会技术`问题。我们可以认为：在技术上，复杂的完美游戏是能够实现的。
+
 ## 参考
 
 - [Coursera: Bitcoin and cryptocurrency](https://www.coursera.org/learn/cryptocurrency/) 
